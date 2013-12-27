@@ -88,8 +88,10 @@ PRODUCT_COPY_FILES += \
     $(COMMON_PATH)/configs/media_profiles.xml:system/etc/media_profiles.xml
 
 # RIL
+PRODUCT_PACKAGES += \
+    libsamsung-ril
+
 PRODUCT_PROPERTY_OVERRIDES += \
-    ro.telephony.ril_class=SamsungExynos4RIL \
     mobiledata.interfaces=pdp0,wlan0,gprs,ppp0 \
     ro.telephony.call_ring.multiple=false \
     ro.telephony.call_ring.delay=3000
