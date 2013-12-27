@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2013 Paul Kocialkowski
+ * Copyright (C) 2013 Paul Kocialkowski <contact@paulk.fr>
  *
  * Based on crespo libcamera and exynos4 hal libcamera:
- * Copyright 2008, The Android Open Source Project
- * Copyright 2010, Samsung Electronics Co. LTD
+ * Copyright 2008, The Android Open Source Project, Apache License 2.0
+ * Copyright 2010, Samsung Electronics Co. LTD, Apache License 2.0
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1612,15 +1612,14 @@ void *exynos_camera_auto_focus_thread(void *data)
 			goto thread_exit;
 		}
 
-		if (auto_focus_status & M5MO_AF_STATUS_IN_PROGRESS) { // Progress
-			usleep(10000); // Sleep 10 ms
-		} else if (auto_focus_status == M5MO_AF_STATUS_SUCCESS || auto_focus_status == M5MO_AF_STATUS_1ST_SUCCESS) { // Success
+		if (auto_focus_status & M5MO_AF_STATUS_IN_PROGRESS) {
+			usleep(10000);
+		} else if (auto_focus_status == M5MO_AF_STATUS_SUCCESS || auto_focus_status == M5MO_AF_STATUS_1ST_SUCCESS) {
 			auto_focus_result = 1;
 			pthread_mutex_unlock(&exynos_camera->auto_focus_mutex);
 			goto thread_exit;
 		} else {
 			auto_focus_result = 0;
-			ALOGE("AF failed or unknown result flag: 0x%x", auto_focus_status);
 			pthread_mutex_unlock(&exynos_camera->auto_focus_mutex);
 			goto thread_exit;
 		}
@@ -2322,7 +2321,7 @@ int exynos_camera_set_preview_window(struct camera_device *dev,
 	if (w->set_buffer_count == NULL || w->set_usage == NULL || w->set_buffers_geometry == NULL)
 		return -EINVAL;
 
-        if (exynos_camera->preview_width == 640 || exynos_camera->preview_buffers_count <= 0) {
+	if (exynos_camera->preview_buffers_count <= 0) {
 		ALOGE("%s: Invalid preview buffers count", __func__);
 		exynos_camera->preview_buffers_count = EXYNOS_CAMERA_MAX_BUFFERS_COUNT;
 	}

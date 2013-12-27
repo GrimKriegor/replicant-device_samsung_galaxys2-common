@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2013 Paul Kocialkowski
+ * Copyright (C) 2013 Paul Kocialkowski <contact@paulk.fr>
  *
  * Based on crespo libcamera and exynos4 hal libcamera:
- * Copyright 2008, The Android Open Source Project
- * Copyright 2010, Samsung Electronics Co. LTD
+ * Copyright 2008, The Android Open Source Project, Apache License 2.0
+ * Copyright 2010, Samsung Electronics Co. LTD, Apache License 2.0
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

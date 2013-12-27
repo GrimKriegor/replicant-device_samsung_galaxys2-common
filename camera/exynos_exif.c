@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2013 Paul Kocialkowski
+ * Copyright (C) 2013 Paul Kocialkowski <contact@paulk.fr>
  *
  * Based on crespo libcamera and exynos4 hal libcamera:
- * Copyright 2008, The Android Open Source Project
- * Copyright 2010, Samsung Electronics Co. LTD
+ * Copyright 2008, The Android Open Source Project, Apache License 2.0
+ * Copyright 2010, Samsung Electronics Co. LTD, Apache License 2.0
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,10 +38,6 @@
 #include <cutils/properties.h>
 
 #include "exynos_camera.h"
-
-/*
- * FIXME: This EXIF implementation doesn't work very well, it needs to be fixed.
- */
 
 int exynos_exif_attributes_create_static(struct exynos_camera *exynos_camera,
 	exif_attribute_t *exif_attributes)
@@ -259,15 +255,6 @@ int exynos_exif_attributes_create_params(struct exynos_camera *exynos_camera,
 	exif_attributes->shutter_speed.num = shutter_speed;
 	exif_attributes->shutter_speed.den = 100;
 
-	/* the exposure_time value read from the camera doesn't work
-	 * exposure_time = shutter_speed;
-	 * rc = exynos_v4l2_g_ctrl(exynos_camera, 0, V4L2_CID_CAMERA_EXIF_EXPTIME,
-	 * 	&exposure_time);
-	 * if (rc < 0)
-	 *	ALOGE("%s: g ctrl failed!", __func__);
-	 */
-
-	// calculate exposure time from the shutter speed value instead
 	exif_attributes->exposure_time.num = 1;
 	exif_attributes->exposure_time.den = APEX_SHUTTER_TO_EXPOSURE(shutter_speed);
 

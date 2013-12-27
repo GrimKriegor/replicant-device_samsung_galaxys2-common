@@ -70,7 +70,7 @@ PRODUCT_PACKAGES += \
 
 # HAL
 PRODUCT_PACKAGES += \
-	camera.smdk4210 \
+    camera.smdk4210 \
     hwcomposer.exynos4 \
     libnetcmdiface \
     lights.exynos4 \

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Paul Kocialkowski
+ * Copyright (C) 2013 Paul Kocialkowski <contact@paulk.fr>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,13 +45,6 @@
 /*
  * Structures
  */
-
-enum m5mo_af_status {
-	M5MO_AF_STATUS_FAIL = 0,
-	M5MO_AF_STATUS_IN_PROGRESS,
-	M5MO_AF_STATUS_SUCCESS,
-	M5MO_AF_STATUS_1ST_SUCCESS = 4,
-};
 
 struct list_head {
 	struct list_head *next;
@@ -281,6 +274,13 @@ struct exynos_v4l2_ext_control {
 		char *string;
 	} data;
 } __attribute__ ((packed));
+
+enum m5mo_af_status {
+	M5MO_AF_STATUS_FAIL = 0,
+	M5MO_AF_STATUS_IN_PROGRESS,
+	M5MO_AF_STATUS_SUCCESS,
+	M5MO_AF_STATUS_1ST_SUCCESS = 4,
+};
 
 /*
  * Camera
