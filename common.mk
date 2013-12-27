@@ -65,7 +65,8 @@ PRODUCT_PACKAGES += \
     audio.primary.exynos4 \
     audio.a2dp.default \
     audio.usb.default \
-    libaudiohw_legacy
+    libaudiohw_legacy \
+    libaudio-ril-interface
 
 # HAL
 PRODUCT_PACKAGES += \
