@@ -67,8 +67,7 @@ TARGET_RELEASETOOL_OTA_FROM_TARGET_SCRIPT := ./device/samsung/galaxys2-common/re
 TARGET_RELEASETOOL_IMG_FROM_TARGET_SCRIPT := ./device/samsung/galaxys2-common/releasetools/galaxys2_img_from_target_files
 
 # Graphics
-BOARD_EGL_CFG := device/samsung/galaxys2-common/configs/egl.cfg
-USE_OPENGL_RENDERER := true
+USE_OPENGL_RENDERER := false
 
 # FIMG Acceleration
 BOARD_USES_FIMGAPI := true
