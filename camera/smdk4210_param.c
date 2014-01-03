@@ -22,10 +22,10 @@
 #include <malloc.h>
 #include <ctype.h>
 
-#define LOG_TAG "exynos_param"
+#define LOG_TAG "smdk4210_param"
 #include <utils/Log.h>
 
-#include "exynos_camera.h"
+#include "smdk4210_camera.h"
 
 int list_head_insert(struct list_head *list, struct list_head *prev,
 	struct list_head *next)
@@ -55,29 +55,29 @@ void list_head_remove(struct list_head *list)
 		list->prev->next = list->next;
 }
 
-int exynos_param_register(struct exynos_camera *exynos_camera, char *key,
-	union exynos_param_data data, enum exynos_param_type type)
+int smdk4210_param_register(struct smdk4210_camera *smdk4210_camera, char *key,
+	union smdk4210_param_data data, enum smdk4210_param_type type)
 {
 	struct list_head *list_end;
 	struct list_head *list;
-	struct exynos_param *param;
+	struct smdk4210_param *param;
 
-	if (exynos_camera == NULL || key == NULL)
+	if (smdk4210_camera == NULL || key == NULL)
 		return -EINVAL;
 
-	param = (struct exynos_param *) calloc(1, sizeof(struct exynos_param));
+	param = (struct smdk4210_param *) calloc(1, sizeof(struct smdk4210_param));
 	if (param == NULL)
 		return -ENOMEM;
 
 	param->key = strdup(key);
 	switch (type) {
-		case EXYNOS_PARAM_INT:
+		case SMDK4210_PARAM_INT:
 			param->data.integer = data.integer;
 			break;
-		case EXYNOS_PARAM_FLOAT:
+		case SMDK4210_PARAM_FLOAT:
 			param->data.floating = data.floating;
 			break;
-		case EXYNOS_PARAM_STRING:
+		case SMDK4210_PARAM_STRING:
 			param->data.string = strdup(data.string);
 			break;
 		default:
@@ -86,15 +86,15 @@ int exynos_param_register(struct exynos_camera *exynos_camera, char *key,
 	}
 	param->type = type;
 
-	list_end = (struct list_head *) exynos_camera->params;
+	list_end = (struct list_head *) smdk4210_camera->params;
 	while (list_end != NULL && list_end->next != NULL)
 		list_end = list_end->next;
 
 	list = (struct list_head *) param;
 	list_head_insert(list, list_end, NULL);
 
-	if (exynos_camera->params == NULL)
-		exynos_camera->params = param;
+	if (smdk4210_camera->params == NULL)
+		smdk4210_camera->params = param;
 
 	return 0;
 
@@ -109,26 +109,26 @@ error:
 	return -1;
 }
 
-void exynos_param_unregister(struct exynos_camera *exynos_camera,
-	struct exynos_param *param)
+void smdk4210_param_unregister(struct smdk4210_camera *smdk4210_camera,
+	struct smdk4210_param *param)
 {
 	struct list_head *list;
 
-	if (exynos_camera == NULL || param == NULL)
+	if (smdk4210_camera == NULL || param == NULL)
 		return;
 
-	list = (struct list_head *) exynos_camera->params;
+	list = (struct list_head *) smdk4210_camera->params;
 	while (list != NULL) {
 		if ((void *) list == (void *) param) {
 			list_head_remove(list);
 
-			if ((void *) list == (void *) exynos_camera->params)
-				exynos_camera->params = (struct exynos_param *) list->next;
+			if ((void *) list == (void *) smdk4210_camera->params)
+				smdk4210_camera->params = (struct smdk4210_param *) list->next;
 
-			if (param->type == EXYNOS_PARAM_STRING && param->data.string != NULL)
+			if (param->type == SMDK4210_PARAM_STRING && param->data.string != NULL)
 				free(param->data.string);
 
-			memset(param, 0, sizeof(struct exynos_param));
+			memset(param, 0, sizeof(struct smdk4210_param));
 			free(param);
 
 			break;
@@ -139,18 +139,18 @@ list_continue:
 	}
 }
 
-struct exynos_param *exynos_param_find_key(struct exynos_camera *exynos_camera,
+struct smdk4210_param *smdk4210_param_find_key(struct smdk4210_camera *smdk4210_camera,
 	char *key)
 {
-	struct exynos_param *param;
+	struct smdk4210_param *param;
 	struct list_head *list;
 
-	if (exynos_camera == NULL || key == NULL)
+	if (smdk4210_camera == NULL || key == NULL)
 		return NULL;
 
-	list = (struct list_head *) exynos_camera->params;
+	list = (struct list_head *) smdk4210_camera->params;
 	while (list != NULL) {
-		param = (struct exynos_param *) list;
+		param = (struct smdk4210_param *) list;
 		if (param->key == NULL)
 			goto list_continue;
 
@@ -164,42 +164,42 @@ list_continue:
 	return NULL;
 }
 
-int exynos_param_data_set(struct exynos_camera *exynos_camera, char *key,
-	union exynos_param_data data, enum exynos_param_type type)
+int smdk4210_param_data_set(struct smdk4210_camera *smdk4210_camera, char *key,
+	union smdk4210_param_data data, enum smdk4210_param_type type)
 {
-	struct exynos_param *param;
+	struct smdk4210_param *param;
 
-	if (exynos_camera == NULL || key == NULL)
+	if (smdk4210_camera == NULL || key == NULL)
 		return -EINVAL;
 
 	if (strchr(key, '=') || strchr(key, ';'))
 		return -EINVAL;
 
-	if (type == EXYNOS_PARAM_STRING && data.string != NULL &&
+	if (type == SMDK4210_PARAM_STRING && data.string != NULL &&
 		(strchr(data.string, '=') || strchr(data.string, ';')))
 		return -EINVAL;
 
-	param = exynos_param_find_key(exynos_camera, key);
+	param = smdk4210_param_find_key(smdk4210_camera, key);
 	if (param == NULL) {
 		// The key isn't in the list yet
-		exynos_param_register(exynos_camera, key, data, type);
+		smdk4210_param_register(smdk4210_camera, key, data, type);
 		return 0;
 	}
 
 	if (param->type != type)
 		ALOGE("%s: Mismatching types for key %s", __func__, key);
 
-	if (param->type == EXYNOS_PARAM_STRING && param->data.string != NULL)
+	if (param->type == SMDK4210_PARAM_STRING && param->data.string != NULL)
 		free(param->data.string);
 
 	switch (type) {
-		case EXYNOS_PARAM_INT:
+		case SMDK4210_PARAM_INT:
 			param->data.integer = data.integer;
 			break;
-		case EXYNOS_PARAM_FLOAT:
+		case SMDK4210_PARAM_FLOAT:
 			param->data.floating = data.floating;
 			break;
-		case EXYNOS_PARAM_STRING:
+		case SMDK4210_PARAM_STRING:
 			param->data.string = strdup(data.string);
 			break;
 		default:
@@ -211,15 +211,15 @@ int exynos_param_data_set(struct exynos_camera *exynos_camera, char *key,
 	return 0;
 }
 
-int exynos_param_data_get(struct exynos_camera *exynos_camera, char *key,
-	union exynos_param_data *data, enum exynos_param_type type)
+int smdk4210_param_data_get(struct smdk4210_camera *smdk4210_camera, char *key,
+	union smdk4210_param_data *data, enum smdk4210_param_type type)
 {
-	struct exynos_param *param;
+	struct smdk4210_param *param;
 
-	if (exynos_camera == NULL || key == NULL || data == NULL)
+	if (smdk4210_camera == NULL || key == NULL || data == NULL)
 		return -EINVAL;
 
-	param = exynos_param_find_key(exynos_camera, key);
+	param = smdk4210_param_find_key(smdk4210_camera, key);
 	if (param == NULL || param->type != type)
 		return -1;
 
@@ -228,16 +228,16 @@ int exynos_param_data_get(struct exynos_camera *exynos_camera, char *key,
 	return 0;
 }
 
-int exynos_param_int_get(struct exynos_camera *exynos_camera,
+int smdk4210_param_int_get(struct smdk4210_camera *smdk4210_camera,
 	char *key)
 {
-	union exynos_param_data data;
+	union smdk4210_param_data data;
 	int rc;
 
-	if (exynos_camera == NULL || key == NULL)
+	if (smdk4210_camera == NULL || key == NULL)
 		return -EINVAL;
 
-	rc = exynos_param_data_get(exynos_camera, key, &data, EXYNOS_PARAM_INT);
+	rc = smdk4210_param_data_get(smdk4210_camera, key, &data, SMDK4210_PARAM_INT);
 	if (rc < 0) {
 		ALOGE("%s: Unable to get data for key %s", __func__, key);
 		return -1;
@@ -246,16 +246,16 @@ int exynos_param_int_get(struct exynos_camera *exynos_camera,
 	return data.integer;
 }
 
-float exynos_param_float_get(struct exynos_camera *exynos_camera,
+float smdk4210_param_float_get(struct smdk4210_camera *smdk4210_camera,
 	char *key)
 {
-	union exynos_param_data data;
+	union smdk4210_param_data data;
 	int rc;
 
-	if (exynos_camera == NULL || key == NULL)
+	if (smdk4210_camera == NULL || key == NULL)
 		return -EINVAL;
 
-	rc = exynos_param_data_get(exynos_camera, key, &data, EXYNOS_PARAM_FLOAT);
+	rc = smdk4210_param_data_get(smdk4210_camera, key, &data, SMDK4210_PARAM_FLOAT);
 	if (rc < 0) {
 		ALOGE("%s: Unable to get data for key %s", __func__, key);
 		return -1;
@@ -264,16 +264,16 @@ float exynos_param_float_get(struct exynos_camera *exynos_camera,
 	return data.floating;
 }
 
-char *exynos_param_string_get(struct exynos_camera *exynos_camera,
+char *smdk4210_param_string_get(struct smdk4210_camera *smdk4210_camera,
 	char *key)
 {
-	union exynos_param_data data;
+	union smdk4210_param_data data;
 	int rc;
 
-	if (exynos_camera == NULL || key == NULL)
+	if (smdk4210_camera == NULL || key == NULL)
 		return NULL;
 
-	rc = exynos_param_data_get(exynos_camera, key, &data, EXYNOS_PARAM_STRING);
+	rc = smdk4210_param_data_get(smdk4210_camera, key, &data, SMDK4210_PARAM_STRING);
 	if (rc < 0) {
 		ALOGE("%s: Unable to get data for key %s", __func__, key);
 		return NULL;
@@ -282,18 +282,18 @@ char *exynos_param_string_get(struct exynos_camera *exynos_camera,
 	return data.string;
 }
 
-int exynos_param_int_set(struct exynos_camera *exynos_camera,
+int smdk4210_param_int_set(struct smdk4210_camera *smdk4210_camera,
 	char *key, int integer)
 {
-	union exynos_param_data data;
+	union smdk4210_param_data data;
 	int rc;
 
-	if (exynos_camera == NULL || key == NULL)
+	if (smdk4210_camera == NULL || key == NULL)
 		return -EINVAL;
 
 	data.integer = integer;
 
-	rc = exynos_param_data_set(exynos_camera, key, data, EXYNOS_PARAM_INT);
+	rc = smdk4210_param_data_set(smdk4210_camera, key, data, SMDK4210_PARAM_INT);
 	if (rc < 0) {
 		ALOGE("%s: Unable to set data for key %s", __func__, key);
 		return -1;
@@ -302,18 +302,18 @@ int exynos_param_int_set(struct exynos_camera *exynos_camera,
 	return 0;
 }
 
-int exynos_param_float_set(struct exynos_camera *exynos_camera,
+int smdk4210_param_float_set(struct smdk4210_camera *smdk4210_camera,
 	char *key, float floating)
 {
-	union exynos_param_data data;
+	union smdk4210_param_data data;
 	int rc;
 
-	if (exynos_camera == NULL || key == NULL)
+	if (smdk4210_camera == NULL || key == NULL)
 		return -EINVAL;
 
 	data.floating = floating;
 
-	rc = exynos_param_data_set(exynos_camera, key, data, EXYNOS_PARAM_FLOAT);
+	rc = smdk4210_param_data_set(smdk4210_camera, key, data, SMDK4210_PARAM_FLOAT);
 	if (rc < 0) {
 		ALOGE("%s: Unable to set data for key %s", __func__, key);
 		return -1;
@@ -322,18 +322,18 @@ int exynos_param_float_set(struct exynos_camera *exynos_camera,
 	return 0;
 }
 
-int exynos_param_string_set(struct exynos_camera *exynos_camera,
+int smdk4210_param_string_set(struct smdk4210_camera *smdk4210_camera,
 	char *key, char *string)
 {
-	union exynos_param_data data;
+	union smdk4210_param_data data;
 	int rc;
 
-	if (exynos_camera == NULL || key == NULL || string == NULL)
+	if (smdk4210_camera == NULL || key == NULL || string == NULL)
 		return -EINVAL;
 
 	data.string = string;
 
-	rc = exynos_param_data_set(exynos_camera, key, data, EXYNOS_PARAM_STRING);
+	rc = smdk4210_param_data_set(smdk4210_camera, key, data, SMDK4210_PARAM_STRING);
 	if (rc < 0) {
 		ALOGE("%s: Unable to set data for key %s", __func__, key);
 		return -1;
@@ -342,21 +342,21 @@ int exynos_param_string_set(struct exynos_camera *exynos_camera,
 	return 0;
 }
 
-char *exynos_params_string_get(struct exynos_camera *exynos_camera)
+char *smdk4210_params_string_get(struct smdk4210_camera *smdk4210_camera)
 {
-	struct exynos_param *param;
+	struct smdk4210_param *param;
 	struct list_head *list;
 	char *string = NULL;
 	char *s = NULL;
 	int length = 0;
 	int l = 0;
 
-	if (exynos_camera == NULL)
+	if (smdk4210_camera == NULL)
 		return NULL;
 
-	list = (struct list_head *) exynos_camera->params;
+	list = (struct list_head *) smdk4210_camera->params;
 	while (list != NULL) {
-		param = (struct exynos_param *) list;
+		param = (struct smdk4210_param *) list;
 		if (param->key == NULL)
 			goto list_continue_length;
 
@@ -364,11 +364,11 @@ char *exynos_params_string_get(struct exynos_camera *exynos_camera)
 		length++;
 
 		switch (param->type) {
-			case EXYNOS_PARAM_INT:
-			case EXYNOS_PARAM_FLOAT:
+			case SMDK4210_PARAM_INT:
+			case SMDK4210_PARAM_FLOAT:
 				length += 16;
 				break;
-			case EXYNOS_PARAM_STRING:
+			case SMDK4210_PARAM_STRING:
 				length += strlen(param->data.string);
 				break;
 			default:
@@ -388,9 +388,9 @@ list_continue_length:
 	string = calloc(1, length);
 	s = string;
 
-	list = (struct list_head *) exynos_camera->params;
+	list = (struct list_head *) smdk4210_camera->params;
 	while (list != NULL) {
-		param = (struct exynos_param *) list;
+		param = (struct smdk4210_param *) list;
 		if (param->key == NULL)
 			goto list_continue;
 
@@ -398,15 +398,15 @@ list_continue_length:
 		s += l;
 
 		switch (param->type) {
-			case EXYNOS_PARAM_INT:
+			case SMDK4210_PARAM_INT:
 				l = snprintf(s, 16, "%d", param->data.integer);
 				s += l;
 				break;
-			case EXYNOS_PARAM_FLOAT:
+			case SMDK4210_PARAM_FLOAT:
 				l = snprintf(s, 16, "%g", param->data.floating);
 				s += l;
 				break;
-			case EXYNOS_PARAM_STRING:
+			case SMDK4210_PARAM_STRING:
 				l = sprintf(s, "%s", param->data.string);
 				s += l;
 				break;
@@ -430,10 +430,10 @@ list_continue:
 	return string;
 }
 
-int exynos_params_string_set(struct exynos_camera *exynos_camera, char *string)
+int smdk4210_params_string_set(struct smdk4210_camera *smdk4210_camera, char *string)
 {
-	union exynos_param_data data;
-	enum exynos_param_type type;
+	union smdk4210_param_data data;
+	enum smdk4210_param_type type;
 
 	char *d = NULL;
 	char *s = NULL;
@@ -446,7 +446,7 @@ int exynos_params_string_set(struct exynos_camera *exynos_camera, char *string)
 	int rc;
 	int i;
 
-	if (exynos_camera == NULL || string == NULL)
+	if (smdk4210_camera == NULL || string == NULL)
 		return -1;
 
 	d = strdup(string);
@@ -466,28 +466,28 @@ int exynos_params_string_set(struct exynos_camera *exynos_camera, char *string)
 
 		k = value;
 		if (isdigit(k[0]) || k[0] == '-') {
-			type = EXYNOS_PARAM_INT;
+			type = SMDK4210_PARAM_INT;
 
 			for (i=1 ; k[i] != '\0' ; i++) {
 				if (k[i] == '.') {
-					type = EXYNOS_PARAM_FLOAT;
+					type = SMDK4210_PARAM_FLOAT;
 				} else if (!isdigit(k[i])) {
-					type = EXYNOS_PARAM_STRING;
+					type = SMDK4210_PARAM_STRING;
 					break;
 				}
 			}
 		} else {
-			type = EXYNOS_PARAM_STRING;
+			type = SMDK4210_PARAM_STRING;
 		}
 
 		switch (type) {
-			case EXYNOS_PARAM_INT:
+			case SMDK4210_PARAM_INT:
 				data.integer = atoi(value);
 				break;
-			case EXYNOS_PARAM_FLOAT:
+			case SMDK4210_PARAM_FLOAT:
 				data.floating = atof(value);
 				break;
-			case EXYNOS_PARAM_STRING:
+			case SMDK4210_PARAM_STRING:
 				data.string = value;
 				break;
 			default:
@@ -495,7 +495,7 @@ int exynos_params_string_set(struct exynos_camera *exynos_camera, char *string)
 				goto error;
 		}
 
-		rc = exynos_param_data_set(exynos_camera, key, data, type);
+		rc = smdk4210_param_data_set(smdk4210_camera, key, data, type);
 		if (rc < 0) {
 			ALOGE("%s: Unable to set data for key %s", __func__, key);
 			goto error;

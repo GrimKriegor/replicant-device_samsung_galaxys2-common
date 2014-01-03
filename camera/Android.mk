@@ -18,10 +18,10 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := \
-	exynos_camera.c \
-	exynos_exif.c \
-	exynos_param.c \
-	exynos_v4l2.c
+	smdk4210_camera.c \
+	smdk4210_exif.c \
+	smdk4210_param.c \
+	smdk4210_v4l2.c
 
 LOCAL_C_INCLUDES := \
 	hardware/samsung/exynos4/hal/include
@@ -29,7 +29,7 @@ LOCAL_C_INCLUDES := \
 LOCAL_SHARED_LIBRARIES := libutils libcutils liblog libcamera_client libhardware libs5pjpeg
 LOCAL_PRELINK_MODULE := false
 
-LOCAL_MODULE := camera.$(TARGET_BOOTLOADER_BOARD_NAME)
+LOCAL_MODULE := camera.smdk4210
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
 LOCAL_MODULE_TAGS := optional
 

@@ -34,17 +34,17 @@
 #include <asm/types.h>
 #include <jpeg_api.h>
 
-#define LOG_TAG "exynos_camera"
+#define LOG_TAG "smdk4210_camera"
 #include <utils/Log.h>
 #include <utils/Timers.h>
 
-#include "exynos_camera.h"
+#include "smdk4210_camera.h"
 
 /*
  * Devices configurations
  */
 
-struct exynos_camera_preset exynos_camera_presets_galaxys2[] = {
+struct smdk4210_camera_preset smdk4210_camera_presets_galaxys2[] = {
 	{
 		.name = "M5MO",
 		.facing = CAMERA_FACING_BACK,
@@ -61,7 +61,7 @@ struct exynos_camera_preset exynos_camera_presets_galaxys2[] = {
 			.preview_size_values = "1280x720,640x480,720x480,800x480,800x450,352x288,320x240,176x144",
 			.preview_size = "640x480",
 			.preview_format_values = "yuv420sp,yuv420p,rgb565",
-			.preview_format = "rgb565",
+			.preview_format = "yuv420sp",
 			.preview_frame_rate_values = "30,25,20,15,10,7",
 			.preview_frame_rate = 30,
 			.preview_fps_range_values = "(7000,30000)",
@@ -130,7 +130,7 @@ struct exynos_camera_preset exynos_camera_presets_galaxys2[] = {
 			.preview_size_values = "640x480,352x288,320x240,176x144",
 			.preview_size = "640x480",
 			.preview_format_values = "yuv420sp,yuv420p,rgb565",
-			.preview_format = "rgb565",
+			.preview_format = "yuv420sp",
 			.preview_frame_rate_values = "30,25,20,15,10,7",
 			.preview_frame_rate = 30,
 			.preview_fps_range_values = "(7000,30000)",
@@ -181,7 +181,7 @@ struct exynos_camera_preset exynos_camera_presets_galaxys2[] = {
 	},
 };
 
-struct exynos_v4l2_node exynos_v4l2_nodes_galaxys2[] = {
+struct smdk4210_v4l2_node smdk4210_v4l2_nodes_galaxys2[] = {
 	{
 		.id = 0,
 		.node = "/dev/video0",
@@ -196,74 +196,74 @@ struct exynos_v4l2_node exynos_v4l2_nodes_galaxys2[] = {
 	},
 };
 
-struct exynox_camera_config exynos_camera_config_galaxys2 = {
-	.presets = (struct exynos_camera_preset *) &exynos_camera_presets_galaxys2,
+struct exynox_camera_config smdk4210_camera_config_galaxys2 = {
+	.presets = (struct smdk4210_camera_preset *) &smdk4210_camera_presets_galaxys2,
 	.presets_count = 2,
-	.v4l2_nodes = (struct exynos_v4l2_node *) &exynos_v4l2_nodes_galaxys2,
+	.v4l2_nodes = (struct smdk4210_v4l2_node *) &smdk4210_v4l2_nodes_galaxys2,
 	.v4l2_nodes_count = 3,
 };
 
 /*
- * Exynos Camera
+ * SMDK4210 Camera
  */
 
-struct exynox_camera_config *exynos_camera_config =
-	&exynos_camera_config_galaxys2;
+struct exynox_camera_config *smdk4210_camera_config =
+	&smdk4210_camera_config_galaxys2;
 
-int exynos_camera_init(struct exynos_camera *exynos_camera, int id)
+int smdk4210_camera_init(struct smdk4210_camera *smdk4210_camera, int id)
 {
 	char firmware_version[7] = { 0 };
-	struct exynos_v4l2_ext_control control;
+	struct smdk4210_v4l2_ext_control control;
 	int rc;
 
-	if (exynos_camera == NULL || id >= exynos_camera->config->presets_count)
+	if (smdk4210_camera == NULL || id >= smdk4210_camera->config->presets_count)
 		return -EINVAL;
 
 	// Init FIMC1
-	rc = exynos_v4l2_open(exynos_camera, 0);
+	rc = smdk4210_v4l2_open(smdk4210_camera, 0);
 	if (rc < 0) {
 		ALOGE("Unable to open v4l2 device");
 		return -1;
 	}
 
-	rc = exynos_v4l2_querycap_cap(exynos_camera, 0);
+	rc = smdk4210_v4l2_querycap_cap(smdk4210_camera, 0);
 	if (rc < 0) {
 		ALOGE("%s: querycap failed", __func__);
 		return -1;
 	}
 
-	rc = exynos_v4l2_enum_input(exynos_camera, 0, id);
+	rc = smdk4210_v4l2_enum_input(smdk4210_camera, 0, id);
 	if (rc < 0) {
 		ALOGE("%s: enum input failed", __func__);
 		return -1;
 	}
 
-	rc = exynos_v4l2_s_input(exynos_camera, 0, id);
+	rc = smdk4210_v4l2_s_input(smdk4210_camera, 0, id);
 	if (rc < 0) {
 		ALOGE("%s: s input failed", __func__);
 		return -1;
 	}
 
 	// Init FIMC2
-	rc = exynos_v4l2_open(exynos_camera, 2);
+	rc = smdk4210_v4l2_open(smdk4210_camera, 2);
 	if (rc < 0) {
 		ALOGE("Unable to open v4l2 device");
 		return -1;
 	}
 
-	rc = exynos_v4l2_querycap_cap(exynos_camera, 2);
+	rc = smdk4210_v4l2_querycap_cap(smdk4210_camera, 2);
 	if (rc < 0) {
 		ALOGE("%s: querycap failed", __func__);
 		return -1;
 	}
 
-	rc = exynos_v4l2_enum_input(exynos_camera, 2, id);
+	rc = smdk4210_v4l2_enum_input(smdk4210_camera, 2, id);
 	if (rc < 0) {
 		ALOGE("%s: enum input failed", __func__);
 		return -1;
 	}
 
-	rc = exynos_v4l2_s_input(exynos_camera, 2, id);
+	rc = smdk4210_v4l2_s_input(smdk4210_camera, 2, id);
 	if (rc < 0) {
 		ALOGE("%s: s input failed", __func__);
 		return -1;
@@ -274,7 +274,7 @@ int exynos_camera_init(struct exynos_camera *exynos_camera, int id)
 	control.id = V4L2_CID_CAM_SENSOR_FW_VER;
 	control.data.string = firmware_version;
 
-	rc = exynos_v4l2_g_ext_ctrls(exynos_camera, 0, (struct v4l2_ext_control *) &control, 1);
+	rc = smdk4210_v4l2_g_ext_ctrls(smdk4210_camera, 0, (struct v4l2_ext_control *) &control, 1);
 	if (rc < 0) {
 		ALOGE("%s: g ext ctrls failed", __func__);
 	} else {
@@ -282,177 +282,177 @@ int exynos_camera_init(struct exynos_camera *exynos_camera, int id)
 	}
 
 	// Params
-	rc = exynos_camera_params_init(exynos_camera, id);
+	rc = smdk4210_camera_params_init(smdk4210_camera, id);
 	if (rc < 0)
 		ALOGE("%s: Unable to init params", __func__);
 
 	// Gralloc
-	rc = hw_get_module(GRALLOC_HARDWARE_MODULE_ID, (const struct hw_module_t **) &exynos_camera->gralloc);
+	rc = hw_get_module(GRALLOC_HARDWARE_MODULE_ID, (const struct hw_module_t **) &smdk4210_camera->gralloc);
 	if (rc)
 		ALOGE("%s: Unable to get gralloc module", __func__);
 
 	return 0;
 }
 
-void exynos_camera_deinit(struct exynos_camera *exynos_camera)
+void smdk4210_camera_deinit(struct smdk4210_camera *smdk4210_camera)
 {
 	int i;
 	int id;
 
-	if (exynos_camera == NULL || exynos_camera->config == NULL)
+	if (smdk4210_camera == NULL || smdk4210_camera->config == NULL)
 		return;
 
-	exynos_v4l2_close(exynos_camera, 0);
-	exynos_v4l2_close(exynos_camera, 2);
+	smdk4210_v4l2_close(smdk4210_camera, 0);
+	smdk4210_v4l2_close(smdk4210_camera, 2);
 }
 
 // Params
 
-int exynos_camera_params_init(struct exynos_camera *exynos_camera, int id)
+int smdk4210_camera_params_init(struct smdk4210_camera *smdk4210_camera, int id)
 {
 	int rc;
 
-	if (exynos_camera == NULL || id >= exynos_camera->config->presets_count)
+	if (smdk4210_camera == NULL || id >= smdk4210_camera->config->presets_count)
 		return -EINVAL;
 
 	// Camera params
-	exynos_camera->camera_rotation = exynos_camera->config->presets[id].rotation;
-	exynos_camera->camera_hflip = exynos_camera->config->presets[id].hflip;
-	exynos_camera->camera_vflip = exynos_camera->config->presets[id].vflip;
-	exynos_camera->camera_picture_format = exynos_camera->config->presets[id].picture_format;
-	exynos_camera->camera_focal_length = (int) (exynos_camera->config->presets[id].focal_length * 100);
-	exynos_camera->camera_metering = exynos_camera->config->presets[id].metering;
+	smdk4210_camera->camera_rotation = smdk4210_camera->config->presets[id].rotation;
+	smdk4210_camera->camera_hflip = smdk4210_camera->config->presets[id].hflip;
+	smdk4210_camera->camera_vflip = smdk4210_camera->config->presets[id].vflip;
+	smdk4210_camera->camera_picture_format = smdk4210_camera->config->presets[id].picture_format;
+	smdk4210_camera->camera_focal_length = (int) (smdk4210_camera->config->presets[id].focal_length * 100);
+	smdk4210_camera->camera_metering = smdk4210_camera->config->presets[id].metering;
 
 	// Recording preview
-	exynos_param_string_set(exynos_camera, "preferred-preview-size-for-video",
-		exynos_camera->config->presets[id].params.preview_size);
+	smdk4210_param_string_set(smdk4210_camera, "preferred-preview-size-for-video",
+		smdk4210_camera->config->presets[id].params.preview_size);
 
 	// Preview
-	exynos_param_string_set(exynos_camera, "preview-size-values",
-		exynos_camera->config->presets[id].params.preview_size_values);
-	exynos_param_string_set(exynos_camera, "preview-size",
-		exynos_camera->config->presets[id].params.preview_size);
-	exynos_param_string_set(exynos_camera, "preview-format-values",
-		exynos_camera->config->presets[id].params.preview_format_values);
-	exynos_param_string_set(exynos_camera, "preview-format",
-		exynos_camera->config->presets[id].params.preview_format);
-	exynos_param_string_set(exynos_camera, "preview-frame-rate-values",
-		exynos_camera->config->presets[id].params.preview_frame_rate_values);
-	exynos_param_int_set(exynos_camera, "preview-frame-rate",
-		exynos_camera->config->presets[id].params.preview_frame_rate);
-	exynos_param_string_set(exynos_camera, "preview-fps-range-values",
-		exynos_camera->config->presets[id].params.preview_fps_range_values);
-	exynos_param_string_set(exynos_camera, "preview-fps-range",
-		exynos_camera->config->presets[id].params.preview_fps_range);
+	smdk4210_param_string_set(smdk4210_camera, "preview-size-values",
+		smdk4210_camera->config->presets[id].params.preview_size_values);
+	smdk4210_param_string_set(smdk4210_camera, "preview-size",
+		smdk4210_camera->config->presets[id].params.preview_size);
+	smdk4210_param_string_set(smdk4210_camera, "preview-format-values",
+		smdk4210_camera->config->presets[id].params.preview_format_values);
+	smdk4210_param_string_set(smdk4210_camera, "preview-format",
+		smdk4210_camera->config->presets[id].params.preview_format);
+	smdk4210_param_string_set(smdk4210_camera, "preview-frame-rate-values",
+		smdk4210_camera->config->presets[id].params.preview_frame_rate_values);
+	smdk4210_param_int_set(smdk4210_camera, "preview-frame-rate",
+		smdk4210_camera->config->presets[id].params.preview_frame_rate);
+	smdk4210_param_string_set(smdk4210_camera, "preview-fps-range-values",
+		smdk4210_camera->config->presets[id].params.preview_fps_range_values);
+	smdk4210_param_string_set(smdk4210_camera, "preview-fps-range",
+		smdk4210_camera->config->presets[id].params.preview_fps_range);
 
 	// Picture
-	exynos_param_string_set(exynos_camera, "picture-size-values",
-		exynos_camera->config->presets[id].params.picture_size_values);
-	exynos_param_string_set(exynos_camera, "picture-size",
-		exynos_camera->config->presets[id].params.picture_size);
-	exynos_param_string_set(exynos_camera, "picture-format-values",
-		exynos_camera->config->presets[id].params.picture_format_values);
-	exynos_param_string_set(exynos_camera, "picture-format",
-		exynos_camera->config->presets[id].params.picture_format);
-	exynos_param_string_set(exynos_camera, "jpeg-thumbnail-size-values",
-		exynos_camera->config->presets[id].params.jpeg_thumbnail_size_values);
-	exynos_param_int_set(exynos_camera, "jpeg-thumbnail-width",
-		exynos_camera->config->presets[id].params.jpeg_thumbnail_width);
-	exynos_param_int_set(exynos_camera, "jpeg-thumbnail-height",
-		exynos_camera->config->presets[id].params.jpeg_thumbnail_height);
-	exynos_param_int_set(exynos_camera, "jpeg-thumbnail-quality",
-		exynos_camera->config->presets[id].params.jpeg_thumbnail_quality);
-	exynos_param_int_set(exynos_camera, "jpeg-quality",
-		exynos_camera->config->presets[id].params.jpeg_quality);
+	smdk4210_param_string_set(smdk4210_camera, "picture-size-values",
+		smdk4210_camera->config->presets[id].params.picture_size_values);
+	smdk4210_param_string_set(smdk4210_camera, "picture-size",
+		smdk4210_camera->config->presets[id].params.picture_size);
+	smdk4210_param_string_set(smdk4210_camera, "picture-format-values",
+		smdk4210_camera->config->presets[id].params.picture_format_values);
+	smdk4210_param_string_set(smdk4210_camera, "picture-format",
+		smdk4210_camera->config->presets[id].params.picture_format);
+	smdk4210_param_string_set(smdk4210_camera, "jpeg-thumbnail-size-values",
+		smdk4210_camera->config->presets[id].params.jpeg_thumbnail_size_values);
+	smdk4210_param_int_set(smdk4210_camera, "jpeg-thumbnail-width",
+		smdk4210_camera->config->presets[id].params.jpeg_thumbnail_width);
+	smdk4210_param_int_set(smdk4210_camera, "jpeg-thumbnail-height",
+		smdk4210_camera->config->presets[id].params.jpeg_thumbnail_height);
+	smdk4210_param_int_set(smdk4210_camera, "jpeg-thumbnail-quality",
+		smdk4210_camera->config->presets[id].params.jpeg_thumbnail_quality);
+	smdk4210_param_int_set(smdk4210_camera, "jpeg-quality",
+		smdk4210_camera->config->presets[id].params.jpeg_quality);
 
 	// Recording
-	exynos_param_string_set(exynos_camera, "video-size",
-		exynos_camera->config->presets[id].params.recording_size);
-	exynos_param_string_set(exynos_camera, "video-size-values",
-		exynos_camera->config->presets[id].params.recording_size_values);
-	exynos_param_string_set(exynos_camera, "video-frame-format",
-		exynos_camera->config->presets[id].params.recording_format);
+	smdk4210_param_string_set(smdk4210_camera, "video-size",
+		smdk4210_camera->config->presets[id].params.recording_size);
+	smdk4210_param_string_set(smdk4210_camera, "video-size-values",
+		smdk4210_camera->config->presets[id].params.recording_size_values);
+	smdk4210_param_string_set(smdk4210_camera, "video-frame-format",
+		smdk4210_camera->config->presets[id].params.recording_format);
 
 	// Focus
-	exynos_param_string_set(exynos_camera, "focus-mode",
-		exynos_camera->config->presets[id].params.focus_mode);
-	exynos_param_string_set(exynos_camera, "focus-mode-values",
-		exynos_camera->config->presets[id].params.focus_mode_values);
-	exynos_param_string_set(exynos_camera, "focus-distances",
-		exynos_camera->config->presets[id].params.focus_distances);
-	if (exynos_camera->config->presets[id].params.max_num_focus_areas > 0) {
-		exynos_param_string_set(exynos_camera, "focus-areas",
-			exynos_camera->config->presets[id].params.focus_areas);
-		exynos_param_int_set(exynos_camera, "max-num-focus-areas",
-			exynos_camera->config->presets[id].params.max_num_focus_areas);
+	smdk4210_param_string_set(smdk4210_camera, "focus-mode",
+		smdk4210_camera->config->presets[id].params.focus_mode);
+	smdk4210_param_string_set(smdk4210_camera, "focus-mode-values",
+		smdk4210_camera->config->presets[id].params.focus_mode_values);
+	smdk4210_param_string_set(smdk4210_camera, "focus-distances",
+		smdk4210_camera->config->presets[id].params.focus_distances);
+	if (smdk4210_camera->config->presets[id].params.max_num_focus_areas > 0) {
+		smdk4210_param_string_set(smdk4210_camera, "focus-areas",
+			smdk4210_camera->config->presets[id].params.focus_areas);
+		smdk4210_param_int_set(smdk4210_camera, "max-num-focus-areas",
+			smdk4210_camera->config->presets[id].params.max_num_focus_areas);
 	}
 
 	// Zoom
-	if (exynos_camera->config->presets[id].params.zoom_supported == 1) {
-		exynos_param_string_set(exynos_camera, "zoom-supported", "true");
+	if (smdk4210_camera->config->presets[id].params.zoom_supported == 1) {
+		smdk4210_param_string_set(smdk4210_camera, "zoom-supported", "true");
 
-		if (exynos_camera->config->presets[id].params.smooth_zoom_supported == 1)
-			exynos_param_string_set(exynos_camera, "smooth-zoom-supported", "true");
+		if (smdk4210_camera->config->presets[id].params.smooth_zoom_supported == 1)
+			smdk4210_param_string_set(smdk4210_camera, "smooth-zoom-supported", "true");
 
-		if (exynos_camera->config->presets[id].params.zoom_ratios != NULL)
-			exynos_param_string_set(exynos_camera, "zoom-ratios", exynos_camera->config->presets[id].params.zoom_ratios);
+		if (smdk4210_camera->config->presets[id].params.zoom_ratios != NULL)
+			smdk4210_param_string_set(smdk4210_camera, "zoom-ratios", smdk4210_camera->config->presets[id].params.zoom_ratios);
 
-		exynos_param_int_set(exynos_camera, "zoom", exynos_camera->config->presets[id].params.zoom);
-		exynos_param_int_set(exynos_camera, "max-zoom", exynos_camera->config->presets[id].params.max_zoom);
+		smdk4210_param_int_set(smdk4210_camera, "zoom", smdk4210_camera->config->presets[id].params.zoom);
+		smdk4210_param_int_set(smdk4210_camera, "max-zoom", smdk4210_camera->config->presets[id].params.max_zoom);
 
 	} else {
-		exynos_param_string_set(exynos_camera, "zoom-supported", "false");
+		smdk4210_param_string_set(smdk4210_camera, "zoom-supported", "false");
 	}
 
 	// Flash
-	exynos_param_string_set(exynos_camera, "flash-mode",
-		exynos_camera->config->presets[id].params.flash_mode);
-	exynos_param_string_set(exynos_camera, "flash-mode-values",
-		exynos_camera->config->presets[id].params.flash_mode_values);
+	smdk4210_param_string_set(smdk4210_camera, "flash-mode",
+		smdk4210_camera->config->presets[id].params.flash_mode);
+	smdk4210_param_string_set(smdk4210_camera, "flash-mode-values",
+		smdk4210_camera->config->presets[id].params.flash_mode_values);
 
 	// Exposure
-	exynos_param_int_set(exynos_camera, "exposure-compensation",
-		exynos_camera->config->presets[id].params.exposure_compensation);
-	exynos_param_float_set(exynos_camera, "exposure-compensation-step",
-		exynos_camera->config->presets[id].params.exposure_compensation_step);
-	exynos_param_int_set(exynos_camera, "min-exposure-compensation",
-		exynos_camera->config->presets[id].params.min_exposure_compensation);
-	exynos_param_int_set(exynos_camera, "max-exposure-compensation",
-		exynos_camera->config->presets[id].params.max_exposure_compensation);
+	smdk4210_param_int_set(smdk4210_camera, "exposure-compensation",
+		smdk4210_camera->config->presets[id].params.exposure_compensation);
+	smdk4210_param_float_set(smdk4210_camera, "exposure-compensation-step",
+		smdk4210_camera->config->presets[id].params.exposure_compensation_step);
+	smdk4210_param_int_set(smdk4210_camera, "min-exposure-compensation",
+		smdk4210_camera->config->presets[id].params.min_exposure_compensation);
+	smdk4210_param_int_set(smdk4210_camera, "max-exposure-compensation",
+		smdk4210_camera->config->presets[id].params.max_exposure_compensation);
 
 	// WB
-	exynos_param_string_set(exynos_camera, "whitebalance",
-		exynos_camera->config->presets[id].params.whitebalance);
-	exynos_param_string_set(exynos_camera, "whitebalance-values",
-		exynos_camera->config->presets[id].params.whitebalance_values);
+	smdk4210_param_string_set(smdk4210_camera, "whitebalance",
+		smdk4210_camera->config->presets[id].params.whitebalance);
+	smdk4210_param_string_set(smdk4210_camera, "whitebalance-values",
+		smdk4210_camera->config->presets[id].params.whitebalance_values);
 
 	// Scene mode
-	exynos_param_string_set(exynos_camera, "scene-mode",
-		exynos_camera->config->presets[id].params.scene_mode);
-	exynos_param_string_set(exynos_camera, "scene-mode-values",
-		exynos_camera->config->presets[id].params.scene_mode_values);
+	smdk4210_param_string_set(smdk4210_camera, "scene-mode",
+		smdk4210_camera->config->presets[id].params.scene_mode);
+	smdk4210_param_string_set(smdk4210_camera, "scene-mode-values",
+		smdk4210_camera->config->presets[id].params.scene_mode_values);
 
 	// Effect
-	exynos_param_string_set(exynos_camera, "effect",
-		exynos_camera->config->presets[id].params.effect);
-	exynos_param_string_set(exynos_camera, "effect-values",
-		exynos_camera->config->presets[id].params.effect_values);
+	smdk4210_param_string_set(smdk4210_camera, "effect",
+		smdk4210_camera->config->presets[id].params.effect);
+	smdk4210_param_string_set(smdk4210_camera, "effect-values",
+		smdk4210_camera->config->presets[id].params.effect_values);
 
 	// ISO
-	exynos_param_string_set(exynos_camera, "iso",
-		exynos_camera->config->presets[id].params.iso);
-	exynos_param_string_set(exynos_camera, "iso-values",
-		exynos_camera->config->presets[id].params.iso_values);
+	smdk4210_param_string_set(smdk4210_camera, "iso",
+		smdk4210_camera->config->presets[id].params.iso);
+	smdk4210_param_string_set(smdk4210_camera, "iso-values",
+		smdk4210_camera->config->presets[id].params.iso_values);
 
 	// Camera
-	exynos_param_float_set(exynos_camera, "focal-length",
-		exynos_camera->config->presets[id].focal_length);
-	exynos_param_float_set(exynos_camera, "horizontal-view-angle",
-		exynos_camera->config->presets[id].horizontal_view_angle);
-	exynos_param_float_set(exynos_camera, "vertical-view-angle",
-		exynos_camera->config->presets[id].vertical_view_angle);
+	smdk4210_param_float_set(smdk4210_camera, "focal-length",
+		smdk4210_camera->config->presets[id].focal_length);
+	smdk4210_param_float_set(smdk4210_camera, "horizontal-view-angle",
+		smdk4210_camera->config->presets[id].horizontal_view_angle);
+	smdk4210_param_float_set(smdk4210_camera, "vertical-view-angle",
+		smdk4210_camera->config->presets[id].vertical_view_angle);
 
-	rc = exynos_camera_params_apply(exynos_camera);
+	rc = smdk4210_camera_params_apply(smdk4210_camera);
 	if (rc < 0) {
 		ALOGE("%s: Unable to apply params", __func__);
 		return -1;
@@ -461,7 +461,7 @@ int exynos_camera_params_init(struct exynos_camera *exynos_camera, int id)
 	return 0;
 }
 
-int exynos_camera_params_apply(struct exynos_camera *exynos_camera)
+int smdk4210_camera_params_apply(struct smdk4210_camera *smdk4210_camera)
 {
 	char *recording_hint_string;
 	char *recording_preview_size_string;
@@ -528,27 +528,27 @@ int exynos_camera_params_apply(struct exynos_camera *exynos_camera)
 	char *k;
 	int rc;
 
-	if (exynos_camera == NULL)
+	if (smdk4210_camera == NULL)
 		return -EINVAL;
 
-	if (!exynos_camera->preview_params_set) {
+	if (!smdk4210_camera->preview_params_set) {
 		ALOGE("%s: Setting preview params", __func__);
-		exynos_camera->preview_params_set = 1;
+		smdk4210_camera->preview_params_set = 1;
 		force = 1;
 	}
 
 	// Preview
-	preview_size_string = exynos_param_string_get(exynos_camera, "preview-size");
+	preview_size_string = smdk4210_param_string_get(smdk4210_camera, "preview-size");
 	if (preview_size_string != NULL) {
 		sscanf(preview_size_string, "%dx%d", &preview_width, &preview_height);
 
-		if (preview_width != 0 && preview_width != exynos_camera->preview_width)
-			exynos_camera->preview_width = preview_width;
-		if (preview_height != 0 && preview_height != exynos_camera->preview_height)
-			exynos_camera->preview_height = preview_height;
+		if (preview_width != 0 && preview_width != smdk4210_camera->preview_width)
+			smdk4210_camera->preview_width = preview_width;
+		if (preview_height != 0 && preview_height != smdk4210_camera->preview_height)
+			smdk4210_camera->preview_height = preview_height;
 	}
 
-	preview_format_string = exynos_param_string_get(exynos_camera, "preview-format");
+	preview_format_string = smdk4210_param_string_get(smdk4210_camera, "preview-format");
 	if (preview_format_string != NULL) {
 		if (strcmp(preview_format_string, "yuv420sp") == 0) {
 			preview_format = V4L2_PIX_FMT_NV21;
@@ -568,30 +568,30 @@ int exynos_camera_params_apply(struct exynos_camera *exynos_camera)
 			preview_format_bpp = 1.5f;
 		}
 
-		if (preview_format != exynos_camera->preview_format) {
-			exynos_camera->preview_format = preview_format;
-			exynos_camera->preview_format_bpp = preview_format_bpp;
+		if (preview_format != smdk4210_camera->preview_format) {
+			smdk4210_camera->preview_format = preview_format;
+			smdk4210_camera->preview_format_bpp = preview_format_bpp;
 		}
 	}
 
-	preview_fps = exynos_param_int_get(exynos_camera, "preview-frame-rate");
+	preview_fps = smdk4210_param_int_get(smdk4210_camera, "preview-frame-rate");
 	if (preview_fps > 0)
-		exynos_camera->preview_fps = preview_fps;
+		smdk4210_camera->preview_fps = preview_fps;
 	else
-		exynos_camera->preview_fps = 0;
+		smdk4210_camera->preview_fps = 0;
 
 	// Picture
-	picture_size_string = exynos_param_string_get(exynos_camera, "picture-size");
+	picture_size_string = smdk4210_param_string_get(smdk4210_camera, "picture-size");
 	if (picture_size_string != NULL) {
 		sscanf(picture_size_string, "%dx%d", &picture_width, &picture_height);
 
-		if (picture_width != 0 && picture_width != exynos_camera->picture_width)
-			exynos_camera->picture_width = picture_width;
-		if (picture_height != 0 && picture_height != exynos_camera->picture_height)
-			exynos_camera->picture_height = picture_height;
+		if (picture_width != 0 && picture_width != smdk4210_camera->picture_width)
+			smdk4210_camera->picture_width = picture_width;
+		if (picture_height != 0 && picture_height != smdk4210_camera->picture_height)
+			smdk4210_camera->picture_height = picture_height;
 	}
 
-	picture_format_string = exynos_param_string_get(exynos_camera, "picture-format");
+	picture_format_string = smdk4210_param_string_get(smdk4210_camera, "picture-format");
 	if (picture_format_string != NULL) {
 		if (strcmp(picture_format_string, "jpeg") == 0) {
 			picture_format = V4L2_PIX_FMT_JPEG;
@@ -600,45 +600,45 @@ int exynos_camera_params_apply(struct exynos_camera *exynos_camera)
 			picture_format = V4L2_PIX_FMT_JPEG;
 		}
 
-		if (picture_format != exynos_camera->picture_format)
-			exynos_camera->picture_format = picture_format;
+		if (picture_format != smdk4210_camera->picture_format)
+			smdk4210_camera->picture_format = picture_format;
 	}
 
-	jpeg_thumbnail_width = exynos_param_int_get(exynos_camera, "jpeg-thumbnail-width");
+	jpeg_thumbnail_width = smdk4210_param_int_get(smdk4210_camera, "jpeg-thumbnail-width");
 	if (jpeg_thumbnail_width > 0)
-		exynos_camera->jpeg_thumbnail_width = jpeg_thumbnail_width;
+		smdk4210_camera->jpeg_thumbnail_width = jpeg_thumbnail_width;
 
-	jpeg_thumbnail_height = exynos_param_int_get(exynos_camera, "jpeg-thumbnail-height");
+	jpeg_thumbnail_height = smdk4210_param_int_get(smdk4210_camera, "jpeg-thumbnail-height");
 	if (jpeg_thumbnail_height > 0)
-		exynos_camera->jpeg_thumbnail_height = jpeg_thumbnail_height;
+		smdk4210_camera->jpeg_thumbnail_height = jpeg_thumbnail_height;
 
-	jpeg_thumbnail_quality = exynos_param_int_get(exynos_camera, "jpeg-thumbnail-quality");
+	jpeg_thumbnail_quality = smdk4210_param_int_get(smdk4210_camera, "jpeg-thumbnail-quality");
 	if (jpeg_thumbnail_quality > 0)
-		exynos_camera->jpeg_thumbnail_quality = jpeg_thumbnail_quality;
+		smdk4210_camera->jpeg_thumbnail_quality = jpeg_thumbnail_quality;
 
-	jpeg_quality = exynos_param_int_get(exynos_camera, "jpeg-quality");
-	if (jpeg_quality <= 100 && jpeg_quality >= 0 && (jpeg_quality != exynos_camera->jpeg_quality || force)) {
-		exynos_camera->jpeg_quality = jpeg_quality;
-		rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_CAM_JPEG_QUALITY, jpeg_quality);
+	jpeg_quality = smdk4210_param_int_get(smdk4210_camera, "jpeg-quality");
+	if (jpeg_quality <= 100 && jpeg_quality >= 0 && (jpeg_quality != smdk4210_camera->jpeg_quality || force)) {
+		smdk4210_camera->jpeg_quality = jpeg_quality;
+		rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_CAM_JPEG_QUALITY, jpeg_quality);
 		if (rc < 0)
 			ALOGE("%s: s ctrl failed!", __func__);
 	}
 
 	// Recording
-	video_size_string = exynos_param_string_get(exynos_camera, "video-size");
+	video_size_string = smdk4210_param_string_get(smdk4210_camera, "video-size");
 	if (video_size_string == NULL)
-		video_size_string = exynos_param_string_get(exynos_camera, "preview-size");
+		video_size_string = smdk4210_param_string_get(smdk4210_camera, "preview-size");
 
 	if (video_size_string != NULL) {
 		sscanf(video_size_string, "%dx%d", &recording_width, &recording_height);
 
-		if (recording_width != 0 && recording_width != exynos_camera->recording_width)
-			exynos_camera->recording_width = recording_width;
-		if (recording_height != 0 && recording_height != exynos_camera->recording_height)
-			exynos_camera->recording_height = recording_height;
+		if (recording_width != 0 && recording_width != smdk4210_camera->recording_width)
+			smdk4210_camera->recording_width = recording_width;
+		if (recording_height != 0 && recording_height != smdk4210_camera->recording_height)
+			smdk4210_camera->recording_height = recording_height;
 	}
 
-	video_frame_format_string = exynos_param_string_get(exynos_camera, "video-frame-format");
+	video_frame_format_string = smdk4210_param_string_get(smdk4210_camera, "video-frame-format");
 	if (video_frame_format_string != NULL) {
 		if (strcmp(video_frame_format_string, "yuv420sp") == 0) {
 			recording_format = V4L2_PIX_FMT_NV12;
@@ -653,15 +653,15 @@ int exynos_camera_params_apply(struct exynos_camera *exynos_camera)
 			recording_format = V4L2_PIX_FMT_NV12;
 		}
 
-		if (recording_format != exynos_camera->recording_format)
-			exynos_camera->recording_format = recording_format;
+		if (recording_format != smdk4210_camera->recording_format)
+			smdk4210_camera->recording_format = recording_format;
 	}
 
-	recording_hint_string = exynos_param_string_get(exynos_camera, "recording-hint");
+	recording_hint_string = smdk4210_param_string_get(smdk4210_camera, "recording-hint");
 	if (recording_hint_string != NULL && strcmp(recording_hint_string, "true") == 0) {
 		camera_sensor_mode = SENSOR_MOVIE;
 
-		k = exynos_param_string_get(exynos_camera, "preview-size-values");
+		k = smdk4210_param_string_get(smdk4210_camera, "preview-size-values");
 		while (recording_width != 0 && recording_height != 0) {
 			if (k == NULL)
 				break;
@@ -682,13 +682,13 @@ int exynos_camera_params_apply(struct exynos_camera *exynos_camera)
 			k++;
 		}
 
-		if (preview_width != 0 && preview_width != exynos_camera->preview_width)
-			exynos_camera->preview_width = preview_width;
-		if (preview_height != 0 && preview_height != exynos_camera->preview_height)
-			exynos_camera->preview_height = preview_height;
+		if (preview_width != 0 && preview_width != smdk4210_camera->preview_width)
+			smdk4210_camera->preview_width = preview_width;
+		if (preview_height != 0 && preview_height != smdk4210_camera->preview_height)
+			smdk4210_camera->preview_height = preview_height;
 
 		camera_sensor_output_size = ((recording_width & 0xffff) << 16) | (recording_height & 0xffff);
-		rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_CAMERA_SENSOR_OUTPUT_SIZE,
+		rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_CAMERA_SENSOR_OUTPUT_SIZE,
 			camera_sensor_output_size);
 		if (rc < 0)
 			ALOGE("%s: s ctrl failed!", __func__);
@@ -697,15 +697,15 @@ int exynos_camera_params_apply(struct exynos_camera *exynos_camera)
 	}
 
 	// Switching modes
-	if (camera_sensor_mode != exynos_camera->camera_sensor_mode) {
-		exynos_camera->camera_sensor_mode = camera_sensor_mode;
-		rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_CAMERA_SENSOR_MODE, camera_sensor_mode);
+	if (camera_sensor_mode != smdk4210_camera->camera_sensor_mode) {
+		smdk4210_camera->camera_sensor_mode = camera_sensor_mode;
+		rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_CAMERA_SENSOR_MODE, camera_sensor_mode);
 		if (rc < 0)
 			ALOGE("%s: s ctrl failed!", __func__);
 	}
 
 	// Focus
-	focus_areas_string = exynos_param_string_get(exynos_camera, "focus-areas");
+	focus_areas_string = smdk4210_param_string_get(smdk4210_camera, "focus-areas");
 	if (focus_areas_string != NULL) {
 		focus_left = focus_top = focus_right = focus_bottom = focus_weigth = 0;
 
@@ -717,18 +717,18 @@ int exynos_camera_params_apply(struct exynos_camera *exynos_camera)
 			focus_x = (((focus_left + focus_right) / 2) + 1000) * preview_width / 2000;
 			focus_y =  (((focus_top + focus_bottom) / 2) + 1000) * preview_height / 2000;
 
-			if (focus_x != exynos_camera->focus_x || force) {
-				exynos_camera->focus_x = focus_x;
+			if (focus_x != smdk4210_camera->focus_x || force) {
+				smdk4210_camera->focus_x = focus_x;
 
-				rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_CAMERA_OBJECT_POSITION_X, focus_x);
+				rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_CAMERA_OBJECT_POSITION_X, focus_x);
 				if (rc < 0)
 					ALOGE("%s: s ctrl failed!", __func__);
 			}
 
-			if (focus_y != exynos_camera->focus_y || force) {
-				exynos_camera->focus_y = focus_y;
+			if (focus_y != smdk4210_camera->focus_y || force) {
+				smdk4210_camera->focus_y = focus_y;
 
-				rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_CAMERA_OBJECT_POSITION_Y, focus_y);
+				rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_CAMERA_OBJECT_POSITION_Y, focus_y);
 				if (rc < 0)
 					ALOGE("%s: s ctrl failed!", __func__);
 			}
@@ -737,7 +737,7 @@ int exynos_camera_params_apply(struct exynos_camera *exynos_camera)
 		}
 	}
 
-	focus_mode_string = exynos_param_string_get(exynos_camera, "focus-mode");
+	focus_mode_string = smdk4210_param_string_get(smdk4210_camera, "focus-mode");
 	if (focus_mode_string != NULL) {
 		if (focus_mode == 0) {
 			if (strcmp(focus_mode_string, "auto") == 0)
@@ -758,33 +758,33 @@ int exynos_camera_params_apply(struct exynos_camera *exynos_camera)
 				focus_mode = FOCUS_MODE_AUTO;
 		}
 
-		if (focus_mode != exynos_camera->focus_mode || force) {
-			rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_CAMERA_FOCUS_MODE, focus_mode);
+		if (focus_mode != smdk4210_camera->focus_mode || force) {
+			rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_CAMERA_FOCUS_MODE, focus_mode);
 			if (rc < 0)
 				ALOGE("%s: s ctrl failed!", __func__);
 		}
 
 		if (focus_mode == FOCUS_MODE_TOUCH) {
-			rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_CAMERA_TOUCH_AF_START_STOP, 1);
+			rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_CAMERA_TOUCH_AF_START_STOP, 1);
 			if (rc < 0)
 				ALOGE("%s: s ctrl failed!", __func__);
-		} else if (exynos_camera->focus_mode == FOCUS_MODE_TOUCH) {
-			rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_CAMERA_TOUCH_AF_START_STOP, 0);
+		} else if (smdk4210_camera->focus_mode == FOCUS_MODE_TOUCH) {
+			rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_CAMERA_TOUCH_AF_START_STOP, 0);
 			if (rc < 0)
 				ALOGE("%s: s ctrl failed!", __func__);
 		}
 
-		exynos_camera->focus_mode = focus_mode;
+		smdk4210_camera->focus_mode = focus_mode;
 	}
 
 	// Zoom
-	zoom_supported_string = exynos_param_string_get(exynos_camera, "zoom-supported");
+	zoom_supported_string = smdk4210_param_string_get(smdk4210_camera, "zoom-supported");
 	if (zoom_supported_string != NULL && strcmp(zoom_supported_string, "true") == 0) {
-		zoom = exynos_param_int_get(exynos_camera, "zoom");
-		max_zoom = exynos_param_int_get(exynos_camera, "max-zoom");
-		if (zoom <= max_zoom && zoom >= 0 && (zoom != exynos_camera->zoom || force)) {
-			exynos_camera->zoom = zoom;
-			rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_CAMERA_ZOOM, zoom);
+		zoom = smdk4210_param_int_get(smdk4210_camera, "zoom");
+		max_zoom = smdk4210_param_int_get(smdk4210_camera, "max-zoom");
+		if (zoom <= max_zoom && zoom >= 0 && (zoom != smdk4210_camera->zoom || force)) {
+			smdk4210_camera->zoom = zoom;
+			rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_CAMERA_ZOOM, zoom);
 			if (rc < 0)
 				ALOGE("%s: s ctrl failed!", __func__);
 		}
@@ -792,7 +792,7 @@ int exynos_camera_params_apply(struct exynos_camera *exynos_camera)
 	}
 
 	// Flash
-	flash_mode_string = exynos_param_string_get(exynos_camera, "flash-mode");
+	flash_mode_string = smdk4210_param_string_get(smdk4210_camera, "flash-mode");
 	if (flash_mode_string != NULL) {
 		if (strcmp(flash_mode_string, "off") == 0)
 			flash_mode = FLASH_MODE_OFF;
@@ -805,29 +805,29 @@ int exynos_camera_params_apply(struct exynos_camera *exynos_camera)
 		else
 			flash_mode = FLASH_MODE_AUTO;
 
-		if (flash_mode != exynos_camera->flash_mode || force) {
-			exynos_camera->flash_mode = flash_mode;
-			rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_CAMERA_FLASH_MODE, flash_mode);
+		if (flash_mode != smdk4210_camera->flash_mode || force) {
+			smdk4210_camera->flash_mode = flash_mode;
+			rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_CAMERA_FLASH_MODE, flash_mode);
 			if (rc < 0)
 				ALOGE("%s: s ctrl failed!", __func__);
 		}
 	}
 
 	// Exposure
-	exposure_compensation = exynos_param_int_get(exynos_camera, "exposure-compensation");
-	min_exposure_compensation = exynos_param_int_get(exynos_camera, "min-exposure-compensation");
-	max_exposure_compensation = exynos_param_int_get(exynos_camera, "max-exposure-compensation");
+	exposure_compensation = smdk4210_param_int_get(smdk4210_camera, "exposure-compensation");
+	min_exposure_compensation = smdk4210_param_int_get(smdk4210_camera, "min-exposure-compensation");
+	max_exposure_compensation = smdk4210_param_int_get(smdk4210_camera, "max-exposure-compensation");
 
 	if (exposure_compensation <= max_exposure_compensation && exposure_compensation >= min_exposure_compensation &&
-		(exposure_compensation != exynos_camera->exposure_compensation || force)) {
-		exynos_camera->exposure_compensation = exposure_compensation;
-		rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_CAMERA_BRIGHTNESS, exposure_compensation);
+		(exposure_compensation != smdk4210_camera->exposure_compensation || force)) {
+		smdk4210_camera->exposure_compensation = exposure_compensation;
+		rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_CAMERA_BRIGHTNESS, exposure_compensation);
 		if (rc < 0)
 			ALOGE("%s: s ctrl failed!", __func__);
 	}
 
 	// WB
-	whitebalance_string = exynos_param_string_get(exynos_camera, "whitebalance");
+	whitebalance_string = smdk4210_param_string_get(smdk4210_camera, "whitebalance");
 	if (whitebalance_string != NULL) {
 		if (strcmp(whitebalance_string, "auto") == 0)
 			whitebalance = WHITE_BALANCE_AUTO;
@@ -842,16 +842,16 @@ int exynos_camera_params_apply(struct exynos_camera *exynos_camera)
 		else
 			whitebalance = WHITE_BALANCE_AUTO;
 
-		if (whitebalance != exynos_camera->whitebalance || force) {
-			exynos_camera->whitebalance = whitebalance;
-			rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_CAMERA_WHITE_BALANCE, whitebalance);
+		if (whitebalance != smdk4210_camera->whitebalance || force) {
+			smdk4210_camera->whitebalance = whitebalance;
+			rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_CAMERA_WHITE_BALANCE, whitebalance);
 			if (rc < 0)
 				ALOGE("%s: s ctrl failed!", __func__);
 		}
 	}
 
 	// Scene mode
-	scene_mode_string = exynos_param_string_get(exynos_camera, "scene-mode");
+	scene_mode_string = smdk4210_param_string_get(smdk4210_camera, "scene-mode");
 	if (scene_mode_string != NULL) {
 		if (strcmp(scene_mode_string, "auto") == 0)
 			scene_mode = SCENE_MODE_NONE;
@@ -886,16 +886,16 @@ int exynos_camera_params_apply(struct exynos_camera *exynos_camera)
 		else
 			scene_mode = SCENE_MODE_NONE;
 
-		if (scene_mode != exynos_camera->scene_mode || force) {
-			exynos_camera->scene_mode = scene_mode;
-			rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_CAMERA_SCENE_MODE, scene_mode);
+		if (scene_mode != smdk4210_camera->scene_mode || force) {
+			smdk4210_camera->scene_mode = scene_mode;
+			rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_CAMERA_SCENE_MODE, scene_mode);
 			if (rc < 0)
 				ALOGE("%s: s ctrl failed!", __func__);
 		}
 	}
 
 	// Effect
-	effect_string = exynos_param_string_get(exynos_camera, "effect");
+	effect_string = smdk4210_param_string_get(smdk4210_camera, "effect");
 	if (effect_string != NULL) {
 		if (strcmp(effect_string, "auto") == 0)
 			effect = IMAGE_EFFECT_NONE;
@@ -910,16 +910,16 @@ int exynos_camera_params_apply(struct exynos_camera *exynos_camera)
 		else
 			effect = IMAGE_EFFECT_NONE;
 
-		if (effect != exynos_camera->effect || force) {
-			exynos_camera->effect = effect;
-			rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_CAMERA_EFFECT, effect);
+		if (effect != smdk4210_camera->effect || force) {
+			smdk4210_camera->effect = effect;
+			rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_CAMERA_EFFECT, effect);
 			if (rc < 0)
 				ALOGE("%s: s ctrl failed!", __func__);
 		}
 	}
 
 	// ISO
-	iso_string = exynos_param_string_get(exynos_camera, "iso");
+	iso_string = smdk4210_param_string_get(smdk4210_camera, "iso");
 	if (iso_string != NULL) {
 		if (strcmp(iso_string, "auto") == 0)
 			iso = ISO_AUTO;
@@ -936,9 +936,9 @@ int exynos_camera_params_apply(struct exynos_camera *exynos_camera)
 		else
 			iso = ISO_AUTO;
 
-		if (iso != exynos_camera->iso || force) {
-			exynos_camera->iso = iso;
-			rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_CAMERA_ISO, iso);
+		if (iso != smdk4210_camera->iso || force) {
+			smdk4210_camera->iso = iso;
+			rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_CAMERA_ISO, iso);
 			if (rc < 0)
 				ALOGE("%s: s ctrl failed!", __func__);
 		}
@@ -953,7 +953,7 @@ int exynos_camera_params_apply(struct exynos_camera *exynos_camera)
 
 // Picture
 
-int exynos_camera_picture(struct exynos_camera *exynos_camera)
+int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 {
 	camera_memory_t *data_memory = NULL;
 	camera_memory_t *exif_data_memory = NULL;
@@ -994,24 +994,24 @@ int exynos_camera_picture(struct exynos_camera *exynos_camera)
 	int index;
 	int rc;
 
-	if (exynos_camera == NULL)
+	if (smdk4210_camera == NULL)
 		return -EINVAL;
 
-	picture_width = exynos_camera->picture_width;
-	picture_height = exynos_camera->picture_height;
-	picture_format = exynos_camera->picture_format;
-	camera_picture_format = exynos_camera->camera_picture_format;
-	jpeg_thumbnail_width = exynos_camera->jpeg_thumbnail_width;
-	jpeg_thumbnail_height = exynos_camera->jpeg_thumbnail_height;
-	jpeg_thumbnail_quality = exynos_camera->jpeg_thumbnail_quality;
-	jpeg_quality = exynos_camera->jpeg_quality;
+	picture_width = smdk4210_camera->picture_width;
+	picture_height = smdk4210_camera->picture_height;
+	picture_format = smdk4210_camera->picture_format;
+	camera_picture_format = smdk4210_camera->camera_picture_format;
+	jpeg_thumbnail_width = smdk4210_camera->jpeg_thumbnail_width;
+	jpeg_thumbnail_height = smdk4210_camera->jpeg_thumbnail_height;
+	jpeg_thumbnail_quality = smdk4210_camera->jpeg_thumbnail_quality;
+	jpeg_quality = smdk4210_camera->jpeg_quality;
 
 	if (camera_picture_format == 0)
 		camera_picture_format = picture_format;
 
 	// V4L2
 
-	rc = exynos_v4l2_poll(exynos_camera, 0);
+	rc = smdk4210_v4l2_poll(smdk4210_camera, 0);
 	if (rc < 0) {
 		ALOGE("%s: poll failed!", __func__);
 		return -1;
@@ -1020,13 +1020,13 @@ int exynos_camera_picture(struct exynos_camera *exynos_camera)
 		return -1;
 	}
 
-	rc = exynos_v4l2_streamoff_cap(exynos_camera, 0);
+	rc = smdk4210_v4l2_streamoff_cap(smdk4210_camera, 0);
 	if (rc < 0) {
 		ALOGE("%s: streamoff failed!", __func__);
 		return -1;
 	}
 
-	index = exynos_v4l2_dqbuf_cap(exynos_camera, 0);
+	index = smdk4210_v4l2_dqbuf_cap(smdk4210_camera, 0);
 	if (index < 0) {
 		ALOGE("%s: dqbuf failed!", __func__);
 		return -1;
@@ -1035,45 +1035,45 @@ int exynos_camera_picture(struct exynos_camera *exynos_camera)
 	// This assumes that the output format is JPEG
 
 	if (camera_picture_format == V4L2_PIX_FMT_JPEG) {
-		rc = exynos_v4l2_g_ctrl(exynos_camera, 0, V4L2_CID_CAM_JPEG_MAIN_SIZE,
+		rc = smdk4210_v4l2_g_ctrl(smdk4210_camera, 0, V4L2_CID_CAM_JPEG_MAIN_SIZE,
 			&picture_size);
 		if (rc < 0) {
 			ALOGE("%s: g ctrl failed!", __func__);
 			return -1;
 		}
 
-		rc = exynos_v4l2_g_ctrl(exynos_camera, 0, V4L2_CID_CAM_JPEG_MAIN_OFFSET,
+		rc = smdk4210_v4l2_g_ctrl(smdk4210_camera, 0, V4L2_CID_CAM_JPEG_MAIN_OFFSET,
 			&offset);
 		if (rc < 0) {
 			ALOGE("%s: g ctrl failed!", __func__);
 			return -1;
 		}
 
-		picture_addr = (void *) ((int) exynos_camera->picture_memory->data + offset);
+		picture_addr = (void *) ((int) smdk4210_camera->picture_memory->data + offset);
 
-		rc = exynos_v4l2_g_ctrl(exynos_camera, 0, V4L2_CID_CAM_JPEG_THUMB_SIZE,
+		rc = smdk4210_v4l2_g_ctrl(smdk4210_camera, 0, V4L2_CID_CAM_JPEG_THUMB_SIZE,
 			&jpeg_thumbnail_size);
 		if (rc < 0) {
 			ALOGE("%s: g ctrl failed!", __func__);
 			return -1;
 		}
 
-		rc = exynos_v4l2_g_ctrl(exynos_camera, 0, V4L2_CID_CAM_JPEG_THUMB_OFFSET,
+		rc = smdk4210_v4l2_g_ctrl(smdk4210_camera, 0, V4L2_CID_CAM_JPEG_THUMB_OFFSET,
 			&offset);
 		if (rc < 0) {
 			ALOGE("%s: g ctrl failed!", __func__);
 			return -1;
 		}
 
-		jpeg_thumbnail_addr = (void *) ((int) exynos_camera->picture_memory->data + offset);
+		jpeg_thumbnail_addr = (void *) ((int) smdk4210_camera->picture_memory->data + offset);
 	}
 
 	// Thumbnail
 
 	if (camera_picture_format == V4L2_PIX_FMT_JPEG && jpeg_thumbnail_addr != NULL && jpeg_thumbnail_size >= 0) {
-		if (exynos_camera->callbacks.request_memory != NULL) {
+		if (smdk4210_camera->callbacks.request_memory != NULL) {
 			jpeg_thumbnail_data_memory =
-				exynos_camera->callbacks.request_memory(-1,
+				smdk4210_camera->callbacks.request_memory(-1,
 					jpeg_thumbnail_size, 1, 0);
 			if (jpeg_thumbnail_data_memory == NULL) {
 				ALOGE("%s: thumb memory request failed!", __func__);
@@ -1148,7 +1148,7 @@ int exynos_camera_picture(struct exynos_camera *exynos_camera)
 			goto error;
 		}
 
-		memcpy(jpeg_in_buffer, exynos_camera->picture_memory->data, jpeg_in_size);
+		memcpy(jpeg_in_buffer, smdk4210_camera->picture_memory->data, jpeg_in_size);
 
 		jpeg_result = api_jpeg_encode_exe(jpeg_fd, &jpeg_enc_params);
 		if (jpeg_result != JPEG_ENCODE_OK) {
@@ -1164,9 +1164,9 @@ int exynos_camera_picture(struct exynos_camera *exynos_camera)
 			goto error;
 		}
 
-		if (exynos_camera->callbacks.request_memory != NULL) {
+		if (smdk4210_camera->callbacks.request_memory != NULL) {
 			jpeg_thumbnail_data_memory =
-				exynos_camera->callbacks.request_memory(-1,
+				smdk4210_camera->callbacks.request_memory(-1,
 					jpeg_out_size, 1, 0);
 			if (jpeg_thumbnail_data_memory == NULL) {
 				ALOGE("%s: thumbnail memory request failed!", __func__);
@@ -1188,9 +1188,9 @@ int exynos_camera_picture(struct exynos_camera *exynos_camera)
 	// Picture
 
 	if (camera_picture_format == V4L2_PIX_FMT_JPEG && picture_addr != NULL && picture_size >= 0) {
-		if (exynos_camera->callbacks.request_memory != NULL) {
+		if (smdk4210_camera->callbacks.request_memory != NULL) {
 			picture_data_memory =
-				exynos_camera->callbacks.request_memory(-1,
+				smdk4210_camera->callbacks.request_memory(-1,
 					picture_size, 1, 0);
 			if (picture_data_memory == NULL) {
 				ALOGE("%s: picture memory request failed!", __func__);
@@ -1265,7 +1265,7 @@ int exynos_camera_picture(struct exynos_camera *exynos_camera)
 			goto error;
 		}
 
-		memcpy(jpeg_in_buffer, exynos_camera->picture_memory->data, jpeg_in_size);
+		memcpy(jpeg_in_buffer, smdk4210_camera->picture_memory->data, jpeg_in_size);
 
 		jpeg_result = api_jpeg_encode_exe(jpeg_fd, &jpeg_enc_params);
 		if (jpeg_result != JPEG_ENCODE_OK) {
@@ -1281,9 +1281,9 @@ int exynos_camera_picture(struct exynos_camera *exynos_camera)
 			goto error;
 		}
 
-		if (exynos_camera->callbacks.request_memory != NULL) {
+		if (smdk4210_camera->callbacks.request_memory != NULL) {
 			picture_data_memory =
-				exynos_camera->callbacks.request_memory(-1,
+				smdk4210_camera->callbacks.request_memory(-1,
 					jpeg_out_size, 1, 0);
 			if (picture_data_memory == NULL) {
 				ALOGE("%s: picture memory request failed!", __func__);
@@ -1305,10 +1305,10 @@ int exynos_camera_picture(struct exynos_camera *exynos_camera)
 	// EXIF
 
 	memset(&exif_attributes, 0, sizeof(exif_attributes));
-	exynos_exif_attributes_create_static(exynos_camera, &exif_attributes);
-	exynos_exif_attributes_create_params(exynos_camera, &exif_attributes);
+	smdk4210_exif_attributes_create_static(smdk4210_camera, &exif_attributes);
+	smdk4210_exif_attributes_create_params(smdk4210_camera, &exif_attributes);
 
-	rc = exynos_exif_create(exynos_camera, &exif_attributes,
+	rc = smdk4210_exif_create(smdk4210_camera, &exif_attributes,
 		jpeg_thumbnail_data_memory, jpeg_thumbnail_size,
 		&exif_data_memory, &exif_size);
 	if (rc < 0 || exif_data_memory == NULL || exif_size <= 0) {
@@ -1318,9 +1318,9 @@ int exynos_camera_picture(struct exynos_camera *exynos_camera)
 
 	data_size = exif_size + picture_size;
 
-	if (exynos_camera->callbacks.request_memory != NULL) {
+	if (smdk4210_camera->callbacks.request_memory != NULL) {
 		data_memory =
-			exynos_camera->callbacks.request_memory(-1,
+			smdk4210_camera->callbacks.request_memory(-1,
 				data_size, 1, 0);
 		if (data_memory == NULL) {
 			ALOGE("%s: data memory request failed!", __func__);
@@ -1344,19 +1344,19 @@ int exynos_camera_picture(struct exynos_camera *exynos_camera)
 
 	// Callbacks
 
-	if (EXYNOS_CAMERA_MSG_ENABLED(CAMERA_MSG_SHUTTER) && EXYNOS_CAMERA_CALLBACK_DEFINED(notify))
-		exynos_camera->callbacks.notify(CAMERA_MSG_SHUTTER, 0, 0,
-			exynos_camera->callbacks.user);
+	if (SMDK4210_CAMERA_MSG_ENABLED(CAMERA_MSG_SHUTTER) && SMDK4210_CAMERA_CALLBACK_DEFINED(notify))
+		smdk4210_camera->callbacks.notify(CAMERA_MSG_SHUTTER, 0, 0,
+			smdk4210_camera->callbacks.user);
 
-	if (EXYNOS_CAMERA_MSG_ENABLED(CAMERA_MSG_RAW_IMAGE) && EXYNOS_CAMERA_CALLBACK_DEFINED(data) &&
+	if (SMDK4210_CAMERA_MSG_ENABLED(CAMERA_MSG_RAW_IMAGE) && SMDK4210_CAMERA_CALLBACK_DEFINED(data) &&
 		jpeg_thumbnail_data_memory != NULL)
-		exynos_camera->callbacks.data(CAMERA_MSG_RAW_IMAGE,
-			jpeg_thumbnail_data_memory, 0, NULL, exynos_camera->callbacks.user);
+		smdk4210_camera->callbacks.data(CAMERA_MSG_RAW_IMAGE,
+			jpeg_thumbnail_data_memory, 0, NULL, smdk4210_camera->callbacks.user);
 
-	if (EXYNOS_CAMERA_MSG_ENABLED(CAMERA_MSG_COMPRESSED_IMAGE) && EXYNOS_CAMERA_CALLBACK_DEFINED(data) &&
+	if (SMDK4210_CAMERA_MSG_ENABLED(CAMERA_MSG_COMPRESSED_IMAGE) && SMDK4210_CAMERA_CALLBACK_DEFINED(data) &&
 		data_memory != NULL)
-		exynos_camera->callbacks.data(CAMERA_MSG_COMPRESSED_IMAGE,
-			data_memory, 0, NULL, exynos_camera->callbacks.user);
+		smdk4210_camera->callbacks.data(CAMERA_MSG_COMPRESSED_IMAGE,
+			data_memory, 0, NULL, smdk4210_camera->callbacks.user);
 
 	// Release memory
 
@@ -1390,46 +1390,46 @@ error:
 	return -1;
 }
 
-void *exynos_camera_picture_thread(void *data)
+void *smdk4210_camera_picture_thread(void *data)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 	int rc;
 	int i;
 
 	if (data == NULL)
 		return NULL;
 
-	exynos_camera = (struct exynos_camera *) data;
+	smdk4210_camera = (struct smdk4210_camera *) data;
 
 	ALOGE("%s: Starting thread", __func__);
-	exynos_camera->picture_thread_running = 1;
+	smdk4210_camera->picture_thread_running = 1;
 
-	if (exynos_camera->picture_enabled == 1) {
-		pthread_mutex_lock(&exynos_camera->picture_mutex);
+	if (smdk4210_camera->picture_enabled == 1) {
+		pthread_mutex_lock(&smdk4210_camera->picture_mutex);
 
-		rc = exynos_camera_picture(exynos_camera);
+		rc = smdk4210_camera_picture(smdk4210_camera);
 		if (rc < 0) {
 			ALOGE("%s: picture failed!", __func__);
-			exynos_camera->picture_enabled = 0;
+			smdk4210_camera->picture_enabled = 0;
 		}
 
-		if (exynos_camera->picture_memory != NULL && exynos_camera->picture_memory->release != NULL) {
-			exynos_camera->picture_memory->release(exynos_camera->picture_memory);
-			exynos_camera->picture_memory = NULL;
+		if (smdk4210_camera->picture_memory != NULL && smdk4210_camera->picture_memory->release != NULL) {
+			smdk4210_camera->picture_memory->release(smdk4210_camera->picture_memory);
+			smdk4210_camera->picture_memory = NULL;
 		}
 
-		pthread_mutex_unlock(&exynos_camera->picture_mutex);
+		pthread_mutex_unlock(&smdk4210_camera->picture_mutex);
 	}
 
-	exynos_camera->picture_thread_running = 0;
-	exynos_camera->picture_enabled = 0;
+	smdk4210_camera->picture_thread_running = 0;
+	smdk4210_camera->picture_enabled = 0;
 
 	ALOGE("%s: Exiting thread", __func__);
 
 	return NULL;
 }
 
-int exynos_camera_picture_start(struct exynos_camera *exynos_camera)
+int smdk4210_camera_picture_start(struct smdk4210_camera *smdk4210_camera)
 {
 	pthread_attr_t thread_attr;
 
@@ -1438,63 +1438,63 @@ int exynos_camera_picture_start(struct exynos_camera *exynos_camera)
 	int fd;
 	int rc;
 
-	if (exynos_camera == NULL)
+	if (smdk4210_camera == NULL)
 		return -EINVAL;
 
 	// Stop preview thread
-	exynos_camera_preview_stop(exynos_camera);
+	smdk4210_camera_preview_stop(smdk4210_camera);
 
-	width = exynos_camera->picture_width;
-	height = exynos_camera->picture_height;
-	format = exynos_camera->picture_format;
-	camera_format = exynos_camera->camera_picture_format;
+	width = smdk4210_camera->picture_width;
+	height = smdk4210_camera->picture_height;
+	format = smdk4210_camera->picture_format;
+	camera_format = smdk4210_camera->camera_picture_format;
 
 	// V4L2
 
 	if (camera_format == 0)
 		camera_format = format;
 
-	rc = exynos_v4l2_enum_fmt_cap(exynos_camera, 0, camera_format);
+	rc = smdk4210_v4l2_enum_fmt_cap(smdk4210_camera, 0, camera_format);
 	if (rc < 0) {
 		ALOGE("%s: enum fmt failed!", __func__);
 		return -1;
 	}
 
-	rc = exynos_v4l2_s_fmt_pix_cap(exynos_camera, 0, width, height, camera_format, V4L2_PIX_FMT_MODE_CAPTURE);
+	rc = smdk4210_v4l2_s_fmt_pix_cap(smdk4210_camera, 0, width, height, camera_format, V4L2_PIX_FMT_MODE_CAPTURE);
 	if (rc < 0) {
 		ALOGE("%s: s fmt failed!", __func__);
 		return -1;
 	}
 
 	// Only use 1 buffer
-	rc = exynos_v4l2_reqbufs_cap(exynos_camera, 0, 1);
+	rc = smdk4210_v4l2_reqbufs_cap(smdk4210_camera, 0, 1);
 	if (rc < 0) {
 		ALOGE("%s: reqbufs failed!", __func__);
 		return -1;
 	}
 
-	rc = exynos_v4l2_querybuf_cap(exynos_camera, 0, 0);
+	rc = smdk4210_v4l2_querybuf_cap(smdk4210_camera, 0, 0);
 	if (rc < 0) {
 		ALOGE("%s: querybuf failed!", __func__);
 		return -1;
 	}
 
-	exynos_camera->picture_buffer_length = rc;
+	smdk4210_camera->picture_buffer_length = rc;
 
-	if (exynos_camera->callbacks.request_memory != NULL) {
-		fd = exynos_v4l2_find_fd(exynos_camera, 0);
+	if (smdk4210_camera->callbacks.request_memory != NULL) {
+		fd = smdk4210_v4l2_find_fd(smdk4210_camera, 0);
 		if (fd < 0) {
 			ALOGE("%s: Unable to find v4l2 fd", __func__);
 			return -1;
 		}
 
-		if (exynos_camera->picture_memory != NULL && exynos_camera->picture_memory->release != NULL)
-			exynos_camera->picture_memory->release(exynos_camera->picture_memory);
+		if (smdk4210_camera->picture_memory != NULL && smdk4210_camera->picture_memory->release != NULL)
+			smdk4210_camera->picture_memory->release(smdk4210_camera->picture_memory);
 
-		exynos_camera->picture_memory =
-			exynos_camera->callbacks.request_memory(fd,
-				exynos_camera->picture_buffer_length, 1, 0);
-		if (exynos_camera->picture_memory == NULL) {
+		smdk4210_camera->picture_memory =
+			smdk4210_camera->callbacks.request_memory(fd,
+				smdk4210_camera->picture_buffer_length, 1, 0);
+		if (smdk4210_camera->picture_memory == NULL) {
 			ALOGE("%s: memory request failed!", __func__);
 			return -1;
 		}
@@ -1503,19 +1503,19 @@ int exynos_camera_picture_start(struct exynos_camera *exynos_camera)
 		return -1;
 	}
 
-	rc = exynos_v4l2_qbuf_cap(exynos_camera, 0, 0);
+	rc = smdk4210_v4l2_qbuf_cap(smdk4210_camera, 0, 0);
 	if (rc < 0) {
 		ALOGE("%s: qbuf failed!", __func__);
 		return -1;
 	}
 
-	rc = exynos_v4l2_streamon_cap(exynos_camera, 0);
+	rc = smdk4210_v4l2_streamon_cap(smdk4210_camera, 0);
 	if (rc < 0) {
 		ALOGE("%s: streamon failed!", __func__);
 		return -1;
 	}
 
-	rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_CAMERA_CAPTURE, 0);
+	rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_CAMERA_CAPTURE, 0);
 	if (rc < 0) {
 		ALOGE("%s: s ctrl failed!", __func__);
 		return -1;
@@ -1523,20 +1523,20 @@ int exynos_camera_picture_start(struct exynos_camera *exynos_camera)
 
 	// Thread
 
-	if (exynos_camera->picture_thread_running) {
+	if (smdk4210_camera->picture_thread_running) {
 		ALOGE("Picture thread is already running!");
 		return -1;
 	}
 
-	pthread_mutex_init(&exynos_camera->picture_mutex, NULL);
+	pthread_mutex_init(&smdk4210_camera->picture_mutex, NULL);
 
 	pthread_attr_init(&thread_attr);
 	pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_DETACHED);
 
-	exynos_camera->picture_enabled = 1;
+	smdk4210_camera->picture_enabled = 1;
 
-	rc = pthread_create(&exynos_camera->picture_thread, &thread_attr,
-		exynos_camera_picture_thread, (void *) exynos_camera);
+	rc = pthread_create(&smdk4210_camera->picture_thread, &thread_attr,
+		smdk4210_camera_picture_thread, (void *) smdk4210_camera);
 	if (rc < 0) {
 		ALOGE("%s: Unable to create thread", __func__);
 		return -1;
@@ -1545,42 +1545,42 @@ int exynos_camera_picture_start(struct exynos_camera *exynos_camera)
 	return 0;
 }
 
-void exynos_camera_picture_stop(struct exynos_camera *exynos_camera)
+void smdk4210_camera_picture_stop(struct smdk4210_camera *smdk4210_camera)
 {
 	int rc;
 	int i;
 
-	if (exynos_camera == NULL)
+	if (smdk4210_camera == NULL)
 		return;
 
-	if (!exynos_camera->picture_enabled) {
+	if (!smdk4210_camera->picture_enabled) {
 		ALOGE("Picture was already stopped!");
 		return;
 	}
 
-	pthread_mutex_lock(&exynos_camera->picture_mutex);
+	pthread_mutex_lock(&smdk4210_camera->picture_mutex);
 
 	// Disable picture to make the thread end
-	exynos_camera->picture_enabled = 0;
+	smdk4210_camera->picture_enabled = 0;
 
-	pthread_mutex_unlock(&exynos_camera->picture_mutex);
+	pthread_mutex_unlock(&smdk4210_camera->picture_mutex);
 
 	// Wait for the thread to end
 	for (i = 0; i < 10; i++) {
-		if (!exynos_camera->picture_thread_running)
+		if (!smdk4210_camera->picture_thread_running)
 			break;
 
 		usleep(500);
 	}
 
-	pthread_mutex_destroy(&exynos_camera->picture_mutex);
+	pthread_mutex_destroy(&smdk4210_camera->picture_mutex);
 }
 
 // Auto-focus
 
-void *exynos_camera_auto_focus_thread(void *data)
+void *smdk4210_camera_auto_focus_thread(void *data)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 	int auto_focus_status = -1;
 	int auto_focus_result = 0;
 	int rc;
@@ -1589,26 +1589,26 @@ void *exynos_camera_auto_focus_thread(void *data)
 	if (data == NULL)
 		return NULL;
 
-	exynos_camera = (struct exynos_camera *) data;
+	smdk4210_camera = (struct smdk4210_camera *) data;
 
 	ALOGE("%s: Starting thread", __func__);
-	exynos_camera->auto_focus_thread_running = 1;
+	smdk4210_camera->auto_focus_thread_running = 1;
 
-	rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_CAMERA_SET_AUTO_FOCUS, AUTO_FOCUS_ON);
+	rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_CAMERA_SET_AUTO_FOCUS, AUTO_FOCUS_ON);
 	if (rc < 0) {
 		ALOGE("%s: s ctrl failed!", __func__);
 		auto_focus_result = 0;
 		goto thread_exit;
 	}
 
-	while (exynos_camera->auto_focus_enabled == 1) {
-		pthread_mutex_lock(&exynos_camera->auto_focus_mutex);
+	while (smdk4210_camera->auto_focus_enabled == 1) {
+		pthread_mutex_lock(&smdk4210_camera->auto_focus_mutex);
 
-		rc = exynos_v4l2_g_ctrl(exynos_camera, 0, V4L2_CID_CAMERA_AUTO_FOCUS_RESULT, &auto_focus_status);
+		rc = smdk4210_v4l2_g_ctrl(smdk4210_camera, 0, V4L2_CID_CAMERA_AUTO_FOCUS_RESULT, &auto_focus_status);
 		if (rc < 0) {
 			ALOGE("%s: g ctrl failed!", __func__);
 			auto_focus_result = 0;
-			pthread_mutex_unlock(&exynos_camera->auto_focus_mutex);
+			pthread_mutex_unlock(&smdk4210_camera->auto_focus_mutex);
 			goto thread_exit;
 		}
 
@@ -1616,58 +1616,58 @@ void *exynos_camera_auto_focus_thread(void *data)
 			usleep(10000);
 		} else if (auto_focus_status == M5MO_AF_STATUS_SUCCESS || auto_focus_status == M5MO_AF_STATUS_1ST_SUCCESS) {
 			auto_focus_result = 1;
-			pthread_mutex_unlock(&exynos_camera->auto_focus_mutex);
+			pthread_mutex_unlock(&smdk4210_camera->auto_focus_mutex);
 			goto thread_exit;
 		} else {
 			auto_focus_result = 0;
-			pthread_mutex_unlock(&exynos_camera->auto_focus_mutex);
+			pthread_mutex_unlock(&smdk4210_camera->auto_focus_mutex);
 			goto thread_exit;
 		}
 
-		pthread_mutex_unlock(&exynos_camera->auto_focus_mutex);
+		pthread_mutex_unlock(&smdk4210_camera->auto_focus_mutex);
 	}
 
 thread_exit:
-	rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_CAMERA_SET_AUTO_FOCUS, AUTO_FOCUS_OFF);
+	rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_CAMERA_SET_AUTO_FOCUS, AUTO_FOCUS_OFF);
 	if (rc < 0)
 		ALOGE("%s: s ctrl failed!", __func__);
 
-	if (EXYNOS_CAMERA_MSG_ENABLED(CAMERA_MSG_FOCUS) && EXYNOS_CAMERA_CALLBACK_DEFINED(notify))
-		exynos_camera->callbacks.notify(CAMERA_MSG_FOCUS,
-			(int32_t) auto_focus_result, 0, exynos_camera->callbacks.user);
+	if (SMDK4210_CAMERA_MSG_ENABLED(CAMERA_MSG_FOCUS) && SMDK4210_CAMERA_CALLBACK_DEFINED(notify))
+		smdk4210_camera->callbacks.notify(CAMERA_MSG_FOCUS,
+			(int32_t) auto_focus_result, 0, smdk4210_camera->callbacks.user);
 
-	exynos_camera->auto_focus_thread_running = 0;
-	exynos_camera->auto_focus_enabled = 0;
+	smdk4210_camera->auto_focus_thread_running = 0;
+	smdk4210_camera->auto_focus_enabled = 0;
 
 	ALOGE("%s: Exiting thread", __func__);
 
 	return NULL;
 }
 
-int exynos_camera_auto_focus_start(struct exynos_camera *exynos_camera)
+int smdk4210_camera_auto_focus_start(struct smdk4210_camera *smdk4210_camera)
 {
 	pthread_attr_t thread_attr;
 	int rc;
 
-	if (exynos_camera == NULL)
+	if (smdk4210_camera == NULL)
 		return -EINVAL;
 
 	// Thread
 
-	if (exynos_camera->auto_focus_thread_running) {
+	if (smdk4210_camera->auto_focus_thread_running) {
 		ALOGE("Auto-focus thread is already running!");
 		return -1;
 	}
 
-	pthread_mutex_init(&exynos_camera->auto_focus_mutex, NULL);
+	pthread_mutex_init(&smdk4210_camera->auto_focus_mutex, NULL);
 
 	pthread_attr_init(&thread_attr);
 	pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_DETACHED);
 
-	exynos_camera->auto_focus_enabled = 1;
+	smdk4210_camera->auto_focus_enabled = 1;
 
-	rc = pthread_create(&exynos_camera->auto_focus_thread, &thread_attr,
-		exynos_camera_auto_focus_thread, (void *) exynos_camera);
+	rc = pthread_create(&smdk4210_camera->auto_focus_thread, &thread_attr,
+		smdk4210_camera_auto_focus_thread, (void *) smdk4210_camera);
 	if (rc < 0) {
 		ALOGE("%s: Unable to create thread", __func__);
 		return -1;
@@ -1676,40 +1676,40 @@ int exynos_camera_auto_focus_start(struct exynos_camera *exynos_camera)
 	return 0;
 }
 
-void exynos_camera_auto_focus_stop(struct exynos_camera *exynos_camera)
+void smdk4210_camera_auto_focus_stop(struct smdk4210_camera *smdk4210_camera)
 {
 	int rc;
 	int i;
 
-	if (exynos_camera == NULL)
+	if (smdk4210_camera == NULL)
 		return;
 
-	if (!exynos_camera->auto_focus_enabled) {
+	if (!smdk4210_camera->auto_focus_enabled) {
 		ALOGE("Auto-focus was already stopped!");
 		return;
 	}
 
-	pthread_mutex_lock(&exynos_camera->auto_focus_mutex);
+	pthread_mutex_lock(&smdk4210_camera->auto_focus_mutex);
 
 	// Disable auto-focus to make the thread end
-	exynos_camera->auto_focus_enabled = 0;
+	smdk4210_camera->auto_focus_enabled = 0;
 
-	pthread_mutex_unlock(&exynos_camera->auto_focus_mutex);
+	pthread_mutex_unlock(&smdk4210_camera->auto_focus_mutex);
 
 	// Wait for the thread to end
 	for (i = 0; i < 10; i++) {
-		if (!exynos_camera->auto_focus_thread_running)
+		if (!smdk4210_camera->auto_focus_thread_running)
 			break;
 
 		usleep(500);
 	}
 
-	pthread_mutex_destroy(&exynos_camera->auto_focus_mutex);
+	pthread_mutex_destroy(&smdk4210_camera->auto_focus_mutex);
 }
 
 // Preview
 
-int exynos_camera_preview(struct exynos_camera *exynos_camera)
+int smdk4210_camera_preview(struct smdk4210_camera *smdk4210_camera)
 {
 	buffer_handle_t *buffer;
 	int stride;
@@ -1725,22 +1725,22 @@ int exynos_camera_preview(struct exynos_camera *exynos_camera)
 	unsigned int recording_y_addr;
 	unsigned int recording_cbcr_addr;
 	nsecs_t timestamp;
-	struct exynos_camera_addrs *addrs;
+	struct smdk4210_camera_addrs *addrs;
 	struct timespec ts;
 
 	int index;
 	int rc;
 	int i;
 
-	if (exynos_camera == NULL || exynos_camera->preview_memory == NULL ||
-		exynos_camera->preview_window == NULL)
+	if (smdk4210_camera == NULL || smdk4210_camera->preview_memory == NULL ||
+		smdk4210_camera->preview_window == NULL)
 		return -EINVAL;
 
 	timestamp = systemTime(1);
 
 	// V4L2
 
-	rc = exynos_v4l2_poll(exynos_camera, 0);
+	rc = smdk4210_v4l2_poll(smdk4210_camera, 0);
 	if (rc < 0) {
 		ALOGE("%s: poll failed!", __func__);
 		return -1;
@@ -1749,13 +1749,13 @@ int exynos_camera_preview(struct exynos_camera *exynos_camera)
 		return -1;
 	}
 
-	index = exynos_v4l2_dqbuf_cap(exynos_camera, 0);
-	if (index < 0 || index >= exynos_camera->preview_buffers_count) {
+	index = smdk4210_v4l2_dqbuf_cap(smdk4210_camera, 0);
+	if (index < 0 || index >= smdk4210_camera->preview_buffers_count) {
 		ALOGE("%s: dqbuf failed!", __func__);
 		return -1;
 	}
 
-	rc = exynos_v4l2_qbuf_cap(exynos_camera, 0, index);
+	rc = smdk4210_v4l2_qbuf_cap(smdk4210_camera, 0, index);
 	if (rc < 0) {
 		ALOGE("%s: qbuf failed!", __func__);
 		return -1;
@@ -1763,13 +1763,13 @@ int exynos_camera_preview(struct exynos_camera *exynos_camera)
 
 	// Preview window
 
-	width = exynos_camera->preview_width;
-	height = exynos_camera->preview_height;
-	format_bpp = exynos_camera->preview_format_bpp;
+	width = smdk4210_camera->preview_width;
+	height = smdk4210_camera->preview_height;
+	format_bpp = smdk4210_camera->preview_format_bpp;
 
-	exynos_camera->preview_window->dequeue_buffer(exynos_camera->preview_window,
+	smdk4210_camera->preview_window->dequeue_buffer(smdk4210_camera->preview_window,
 		&buffer, &stride);
-	exynos_camera->gralloc->lock(exynos_camera->gralloc, *buffer, GRALLOC_USAGE_SW_WRITE_OFTEN,
+	smdk4210_camera->gralloc->lock(smdk4210_camera->gralloc, *buffer, GRALLOC_USAGE_SW_WRITE_OFTEN,
 		0, 0, width, height, &window_data);
 
 	if (window_data == NULL) {
@@ -1777,29 +1777,29 @@ int exynos_camera_preview(struct exynos_camera *exynos_camera)
 		return -1;
 	}
 
-	frame_size = exynos_camera->preview_frame_size;
+	frame_size = smdk4210_camera->preview_frame_size;
 	offset = index * frame_size;
 
-	preview_data = (void *) ((int) exynos_camera->preview_memory->data + offset);
+	preview_data = (void *) ((int) smdk4210_camera->preview_memory->data + offset);
 	memcpy(window_data, preview_data, frame_size);
 
-	exynos_camera->gralloc->unlock(exynos_camera->gralloc, *buffer);
-	exynos_camera->preview_window->enqueue_buffer(exynos_camera->preview_window,
+	smdk4210_camera->gralloc->unlock(smdk4210_camera->gralloc, *buffer);
+	smdk4210_camera->preview_window->enqueue_buffer(smdk4210_camera->preview_window,
 		buffer);
 
-	if (EXYNOS_CAMERA_MSG_ENABLED(CAMERA_MSG_PREVIEW_FRAME) && EXYNOS_CAMERA_CALLBACK_DEFINED(data)) {
-		exynos_camera->callbacks.data(CAMERA_MSG_PREVIEW_FRAME,
-			exynos_camera->preview_memory, index, NULL, exynos_camera->callbacks.user);
+	if (SMDK4210_CAMERA_MSG_ENABLED(CAMERA_MSG_PREVIEW_FRAME) && SMDK4210_CAMERA_CALLBACK_DEFINED(data)) {
+		smdk4210_camera->callbacks.data(CAMERA_MSG_PREVIEW_FRAME,
+			smdk4210_camera->preview_memory, index, NULL, smdk4210_camera->callbacks.user);
 	}
 
 	// Recording
 
-	if (exynos_camera->recording_enabled && exynos_camera->recording_memory != NULL) {
-		pthread_mutex_lock(&exynos_camera->recording_mutex);
+	if (smdk4210_camera->recording_enabled && smdk4210_camera->recording_memory != NULL) {
+		pthread_mutex_lock(&smdk4210_camera->recording_mutex);
 
 		// V4L2
 
-		rc = exynos_v4l2_poll(exynos_camera, 2);
+		rc = smdk4210_v4l2_poll(smdk4210_camera, 2);
 		if (rc < 0) {
 			ALOGE("%s: poll failed!", __func__);
 			goto error_recording;
@@ -1808,25 +1808,25 @@ int exynos_camera_preview(struct exynos_camera *exynos_camera)
 			goto error_recording;
 		}
 
-		index = exynos_v4l2_dqbuf_cap(exynos_camera, 2);
+		index = smdk4210_v4l2_dqbuf_cap(smdk4210_camera, 2);
 		if (index < 0) {
 			ALOGE("%s: dqbuf failed!", __func__);
 			goto error_recording;
 		}
 
-		recording_y_addr = exynos_v4l2_s_ctrl(exynos_camera, 2, V4L2_CID_PADDR_Y, index);
+		recording_y_addr = smdk4210_v4l2_s_ctrl(smdk4210_camera, 2, V4L2_CID_PADDR_Y, index);
 		if (recording_y_addr == 0xffffffff) {
 			ALOGE("%s: s ctrl failed!", __func__);
 			goto error_recording;
 		}
 
-		recording_cbcr_addr = exynos_v4l2_s_ctrl(exynos_camera, 2, V4L2_CID_PADDR_CBCR, index);
+		recording_cbcr_addr = smdk4210_v4l2_s_ctrl(smdk4210_camera, 2, V4L2_CID_PADDR_CBCR, index);
 		if (recording_cbcr_addr == 0xffffffff) {
 			ALOGE("%s: s ctrl failed!", __func__);
 			goto error_recording;
 		}
 
-		addrs = (struct exynos_camera_addrs *) exynos_camera->recording_memory->data;
+		addrs = (struct smdk4210_camera_addrs *) smdk4210_camera->recording_memory->data;
 
 		addrs[index].type = 0; // kMetadataBufferTypeCameraSource
 		addrs[index].y = recording_y_addr;
@@ -1834,13 +1834,13 @@ int exynos_camera_preview(struct exynos_camera *exynos_camera)
 		addrs[index].index = index;
 		addrs[index].reserved = 0;
 
-		pthread_mutex_unlock(&exynos_camera->recording_mutex);
+		pthread_mutex_unlock(&smdk4210_camera->recording_mutex);
 
-		if (EXYNOS_CAMERA_MSG_ENABLED(CAMERA_MSG_VIDEO_FRAME) && EXYNOS_CAMERA_CALLBACK_DEFINED(data_timestamp)) {
-			exynos_camera->callbacks.data_timestamp(timestamp, CAMERA_MSG_VIDEO_FRAME,
-				exynos_camera->recording_memory, index, exynos_camera->callbacks.user);
+		if (SMDK4210_CAMERA_MSG_ENABLED(CAMERA_MSG_VIDEO_FRAME) && SMDK4210_CAMERA_CALLBACK_DEFINED(data_timestamp)) {
+			smdk4210_camera->callbacks.data_timestamp(timestamp, CAMERA_MSG_VIDEO_FRAME,
+				smdk4210_camera->recording_memory, index, smdk4210_camera->callbacks.user);
 		} else {
-			rc = exynos_v4l2_qbuf_cap(exynos_camera, 2, index);
+			rc = smdk4210_v4l2_qbuf_cap(smdk4210_camera, 2, index);
 			if (rc < 0) {
 				ALOGE("%s: qbuf failed!", __func__);
 				return -1;
@@ -1851,48 +1851,48 @@ int exynos_camera_preview(struct exynos_camera *exynos_camera)
 	return 0;
 
 error_recording:
-	pthread_mutex_lock(&exynos_camera->recording_mutex);
+	pthread_mutex_lock(&smdk4210_camera->recording_mutex);
 
 	return -1;
 }
 
-void *exynos_camera_preview_thread(void *data)
+void *smdk4210_camera_preview_thread(void *data)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 	int rc;
 
 	if (data == NULL)
 		return NULL;
 
-	exynos_camera = (struct exynos_camera *) data;
+	smdk4210_camera = (struct smdk4210_camera *) data;
 
 	ALOGE("%s: Starting thread", __func__);
-	exynos_camera->preview_thread_running = 1;
+	smdk4210_camera->preview_thread_running = 1;
 
-	if (exynos_camera->preview_window == NULL) {
+	if (smdk4210_camera->preview_window == NULL) {
 		// Lock preview lock mutex
-		pthread_mutex_lock(&exynos_camera->preview_lock_mutex);
+		pthread_mutex_lock(&smdk4210_camera->preview_lock_mutex);
 	}
 
-	while (exynos_camera->preview_enabled == 1) {
-		pthread_mutex_lock(&exynos_camera->preview_mutex);
+	while (smdk4210_camera->preview_enabled == 1) {
+		pthread_mutex_lock(&smdk4210_camera->preview_mutex);
 
-		rc = exynos_camera_preview(exynos_camera);
+		rc = smdk4210_camera_preview(smdk4210_camera);
 		if (rc < 0) {
 			ALOGE("%s: preview failed!", __func__);
-			exynos_camera->preview_enabled = 0;
+			smdk4210_camera->preview_enabled = 0;
 		}
 
-		pthread_mutex_unlock(&exynos_camera->preview_mutex);
+		pthread_mutex_unlock(&smdk4210_camera->preview_mutex);
 	}
 
-	exynos_camera->preview_thread_running = 0;
+	smdk4210_camera->preview_thread_running = 0;
 	ALOGE("%s: Exiting thread", __func__);
 
 	return NULL;
 }
 
-int exynos_camera_preview_start(struct exynos_camera *exynos_camera)
+int smdk4210_camera_preview_start(struct smdk4210_camera *smdk4210_camera)
 {
 	struct v4l2_streamparm streamparm;
 	int width, height, format;
@@ -1905,42 +1905,42 @@ int exynos_camera_preview_start(struct exynos_camera *exynos_camera)
 	int rc;
 	int i;
 
-	if (exynos_camera == NULL)
+	if (smdk4210_camera == NULL)
 		return -EINVAL;
 
-	if (exynos_camera->preview_enabled) {
+	if (smdk4210_camera->preview_enabled) {
 		ALOGE("Preview was already started!");
 		return 0;
 	}
 
 	// V4L2
 
-	format = exynos_camera->preview_format;
+	format = smdk4210_camera->preview_format;
 
-	rc = exynos_v4l2_enum_fmt_cap(exynos_camera, 0, format);
+	rc = smdk4210_v4l2_enum_fmt_cap(smdk4210_camera, 0, format);
 	if (rc < 0) {
 		ALOGE("%s: enum fmt failed!", __func__);
 		return -1;
 	}
 
-	width = exynos_camera->preview_width;
-	height = exynos_camera->preview_height;
-	format_bpp = exynos_camera->preview_format_bpp;
+	width = smdk4210_camera->preview_width;
+	height = smdk4210_camera->preview_height;
+	format_bpp = smdk4210_camera->preview_format_bpp;
 
-	rc = exynos_v4l2_s_fmt_pix_cap(exynos_camera, 0, width, height, format, V4L2_PIX_FMT_MODE_PREVIEW);
+	rc = smdk4210_v4l2_s_fmt_pix_cap(smdk4210_camera, 0, width, height, format, V4L2_PIX_FMT_MODE_PREVIEW);
 	if (rc < 0) {
 		ALOGE("%s: s fmt failed!", __func__);
 		return -1;
 	}
 
-	rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_CACHEABLE, 1);
+	rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_CACHEABLE, 1);
 	if (rc < 0) {
 		ALOGE("%s: s ctrl failed!", __func__);
 		return -1;
 	}
 
-	for (i = EXYNOS_CAMERA_MAX_BUFFERS_COUNT; i >= EXYNOS_CAMERA_MIN_BUFFERS_COUNT; i--) {
-		rc = exynos_v4l2_reqbufs_cap(exynos_camera, 0, i);
+	for (i = SMDK4210_CAMERA_MAX_BUFFERS_COUNT; i >= SMDK4210_CAMERA_MIN_BUFFERS_COUNT; i--) {
+		rc = smdk4210_v4l2_reqbufs_cap(smdk4210_camera, 0, i);
 		if (rc >= 0)
 			break;
 	}
@@ -1950,23 +1950,23 @@ int exynos_camera_preview_start(struct exynos_camera *exynos_camera)
 		return -1;
 	}
 
-	exynos_camera->preview_buffers_count = rc;
-	ALOGD("Found %d preview buffers available!", exynos_camera->preview_buffers_count);
+	smdk4210_camera->preview_buffers_count = rc;
+	ALOGD("Found %d preview buffers available!", smdk4210_camera->preview_buffers_count);
 
-	fps = exynos_camera->preview_fps;
+	fps = smdk4210_camera->preview_fps;
 	memset(&streamparm, 0, sizeof(streamparm));
 	streamparm.parm.capture.timeperframe.numerator = 1;
 	streamparm.parm.capture.timeperframe.denominator = fps;
 
-	rc = exynos_v4l2_s_parm_cap(exynos_camera, 0, &streamparm);
+	rc = smdk4210_v4l2_s_parm_cap(smdk4210_camera, 0, &streamparm);
 	if (rc < 0) {
 		ALOGE("%s: s parm failed!", __func__);
 		return -1;
 	}
 
 	frame_size = (int) ((float) width * (float) height * format_bpp);
-	for (i = 0; i < exynos_camera->preview_buffers_count; i++) {
-		rc = exynos_v4l2_querybuf_cap(exynos_camera, 0, i);
+	for (i = 0; i < smdk4210_camera->preview_buffers_count; i++) {
+		rc = smdk4210_v4l2_querybuf_cap(smdk4210_camera, 0, i);
 		if (rc < 0) {
 			ALOGE("%s: querybuf failed!", __func__);
 			return -1;
@@ -1979,22 +1979,22 @@ int exynos_camera_preview_start(struct exynos_camera *exynos_camera)
 	}
 
 	frame_size = rc;
-	exynos_camera->preview_frame_size = frame_size;
+	smdk4210_camera->preview_frame_size = frame_size;
 
-	if (exynos_camera->callbacks.request_memory != NULL) {
-		fd = exynos_v4l2_find_fd(exynos_camera, 0);
+	if (smdk4210_camera->callbacks.request_memory != NULL) {
+		fd = smdk4210_v4l2_find_fd(smdk4210_camera, 0);
 		if (fd < 0) {
 			ALOGE("%s: Unable to find v4l2 fd", __func__);
 			return -1;
 		}
 
-		if (exynos_camera->preview_memory != NULL && exynos_camera->preview_memory->release != NULL)
-			exynos_camera->preview_memory->release(exynos_camera->preview_memory);
+		if (smdk4210_camera->preview_memory != NULL && smdk4210_camera->preview_memory->release != NULL)
+			smdk4210_camera->preview_memory->release(smdk4210_camera->preview_memory);
 
-		exynos_camera->preview_memory =
-			exynos_camera->callbacks.request_memory(fd,
-				frame_size, exynos_camera->preview_buffers_count, 0);
-		if (exynos_camera->preview_memory == NULL) {
+		smdk4210_camera->preview_memory =
+			smdk4210_camera->callbacks.request_memory(fd,
+				frame_size, smdk4210_camera->preview_buffers_count, 0);
+		if (smdk4210_camera->preview_memory == NULL) {
 			ALOGE("%s: memory request failed!", __func__);
 			return -1;
 		}
@@ -2003,36 +2003,36 @@ int exynos_camera_preview_start(struct exynos_camera *exynos_camera)
 		return -1;
 	}
 
-	for (i = 0; i < exynos_camera->preview_buffers_count; i++) {
-		rc = exynos_v4l2_qbuf_cap(exynos_camera, 0, i);
+	for (i = 0; i < smdk4210_camera->preview_buffers_count; i++) {
+		rc = smdk4210_v4l2_qbuf_cap(smdk4210_camera, 0, i);
 		if (rc < 0) {
 			ALOGE("%s: qbuf failed!", __func__);
 			return -1;
 		}
 	}
 
-	rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_ROTATION,
-		exynos_camera->camera_rotation);
+	rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_ROTATION,
+		smdk4210_camera->camera_rotation);
 	if (rc < 0) {
 		ALOGE("%s: s ctrl failed!", __func__);
 		return -1;
 	}
 
-	rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_HFLIP,
-		exynos_camera->camera_hflip);
+	rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_HFLIP,
+		smdk4210_camera->camera_hflip);
 	if (rc < 0) {
 		ALOGE("%s: s ctrl failed!", __func__);
 		return -1;
 	}
 
-	rc = exynos_v4l2_s_ctrl(exynos_camera, 0, V4L2_CID_VFLIP,
-		exynos_camera->camera_vflip);
+	rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 0, V4L2_CID_VFLIP,
+		smdk4210_camera->camera_vflip);
 	if (rc < 0) {
 		ALOGE("%s: s ctrl failed!", __func__);
 		return -1;
 	}
 
-	rc = exynos_v4l2_streamon_cap(exynos_camera, 0);
+	rc = smdk4210_v4l2_streamon_cap(smdk4210_camera, 0);
 	if (rc < 0) {
 		ALOGE("%s: streamon failed!", __func__);
 		return -1;
@@ -2040,19 +2040,19 @@ int exynos_camera_preview_start(struct exynos_camera *exynos_camera)
 
 	// Thread
 
-	pthread_mutex_init(&exynos_camera->preview_mutex, NULL);
-	pthread_mutex_init(&exynos_camera->preview_lock_mutex, NULL);
+	pthread_mutex_init(&smdk4210_camera->preview_mutex, NULL);
+	pthread_mutex_init(&smdk4210_camera->preview_lock_mutex, NULL);
 
 	// Lock preview lock
-	pthread_mutex_lock(&exynos_camera->preview_lock_mutex);
+	pthread_mutex_lock(&smdk4210_camera->preview_lock_mutex);
 
 	pthread_attr_init(&thread_attr);
 	pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_DETACHED);
 
-	exynos_camera->preview_enabled = 1;
+	smdk4210_camera->preview_enabled = 1;
 
-	rc = pthread_create(&exynos_camera->preview_thread, &thread_attr,
-		exynos_camera_preview_thread, (void *) exynos_camera);
+	rc = pthread_create(&smdk4210_camera->preview_thread, &thread_attr,
+		smdk4210_camera_preview_thread, (void *) smdk4210_camera);
 	if (rc < 0) {
 		ALOGE("%s: Unable to create thread", __func__);
 		return -1;
@@ -2061,81 +2061,81 @@ int exynos_camera_preview_start(struct exynos_camera *exynos_camera)
 	return 0;
 }
 
-void exynos_camera_preview_stop(struct exynos_camera *exynos_camera)
+void smdk4210_camera_preview_stop(struct smdk4210_camera *smdk4210_camera)
 {
 	int rc;
 	int i;
 
-	if (exynos_camera == NULL)
+	if (smdk4210_camera == NULL)
 		return;
 
-	if (!exynos_camera->preview_enabled) {
+	if (!smdk4210_camera->preview_enabled) {
 		ALOGE("Preview was already stopped!");
 		return;
 	}
 
-	exynos_camera->preview_enabled = 0;
+	smdk4210_camera->preview_enabled = 0;
 
 	// Unlock preview lock
-	pthread_mutex_unlock(&exynos_camera->preview_lock_mutex);
+	pthread_mutex_unlock(&smdk4210_camera->preview_lock_mutex);
 
-	pthread_mutex_lock(&exynos_camera->preview_mutex);
+	pthread_mutex_lock(&smdk4210_camera->preview_mutex);
 
 	// Wait for the thread to end
 	for (i = 0; i < 10; i++) {
-		if (!exynos_camera->preview_thread_running)
+		if (!smdk4210_camera->preview_thread_running)
 			break;
 
 		usleep(1000);
 	}
 
-	rc = exynos_v4l2_streamoff_cap(exynos_camera, 0);
+	rc = smdk4210_v4l2_streamoff_cap(smdk4210_camera, 0);
 	if (rc < 0) {
 		ALOGE("%s: streamoff failed!", __func__);
 	}
 
-	exynos_camera->preview_params_set = 0;
+	smdk4210_camera->preview_params_set = 0;
 
-	if (exynos_camera->preview_memory != NULL && exynos_camera->preview_memory->release != NULL) {
-		exynos_camera->preview_memory->release(exynos_camera->preview_memory);
-		exynos_camera->preview_memory = NULL;
+	if (smdk4210_camera->preview_memory != NULL && smdk4210_camera->preview_memory->release != NULL) {
+		smdk4210_camera->preview_memory->release(smdk4210_camera->preview_memory);
+		smdk4210_camera->preview_memory = NULL;
 	}
 
-	exynos_camera->preview_window = NULL;
+	smdk4210_camera->preview_window = NULL;
 
-	pthread_mutex_unlock(&exynos_camera->preview_mutex);
+	pthread_mutex_unlock(&smdk4210_camera->preview_mutex);
 
-	pthread_mutex_destroy(&exynos_camera->preview_lock_mutex);
-	pthread_mutex_destroy(&exynos_camera->preview_mutex);
+	pthread_mutex_destroy(&smdk4210_camera->preview_lock_mutex);
+	pthread_mutex_destroy(&smdk4210_camera->preview_mutex);
 }
 
 // Recording
 
-void exynos_camera_recording_frame_release(struct exynos_camera *exynos_camera, void *data)
+void smdk4210_camera_recording_frame_release(struct smdk4210_camera *smdk4210_camera, void *data)
 {
-	struct exynos_camera_addrs *addrs;
+	struct smdk4210_camera_addrs *addrs;
 	int rc;
 
-	if (exynos_camera == NULL || data == NULL)
+	if (smdk4210_camera == NULL || data == NULL)
 		return;
 
-	addrs = (struct exynos_camera_addrs *) data;
-	if (addrs->index >= (unsigned int) exynos_camera->recording_buffers_count)
+	addrs = (struct smdk4210_camera_addrs *) data;
+	if (addrs->index >= (unsigned int) smdk4210_camera->recording_buffers_count)
 		return;
 
-	pthread_mutex_lock(&exynos_camera->recording_mutex);
+	pthread_mutex_lock(&smdk4210_camera->recording_mutex);
 
-	rc = exynos_v4l2_qbuf_cap(exynos_camera, 2, addrs->index);
+	rc = smdk4210_v4l2_qbuf_cap(smdk4210_camera, 2, addrs->index);
 	if (rc < 0) {
 		ALOGE("%s: qbuf failed!", __func__);
 		goto error;
 	}
 
 error:
-	pthread_mutex_unlock(&exynos_camera->recording_mutex);
+	pthread_mutex_unlock(&smdk4210_camera->recording_mutex);
 }
 
-int exynos_camera_recording_start(struct exynos_camera *exynos_camera)
+int smdk4210_camera_recording_start(struct smdk4210_camera *smdk4210_camera)
 {
 	int width, height, format;
 	int fd;
@@ -2143,37 +2143,37 @@ int exynos_camera_recording_start(struct exynos_camera *exynos_camera)
 	int rc;
 	int i;
 
-	if (exynos_camera == NULL)
+	if (smdk4210_camera == NULL)
 		return -EINVAL;
 
-	if (exynos_camera->recording_enabled) {
+	if (smdk4210_camera->recording_enabled) {
 		ALOGE("Recording was already started!");
 		return 0;
 	}
 
-	pthread_mutex_lock(&exynos_camera->preview_mutex);
+	pthread_mutex_lock(&smdk4210_camera->preview_mutex);
 
 	// V4L2
 
-	format = exynos_camera->recording_format;
+	format = smdk4210_camera->recording_format;
 
-	rc = exynos_v4l2_enum_fmt_cap(exynos_camera, 2, format);
+	rc = smdk4210_v4l2_enum_fmt_cap(smdk4210_camera, 2, format);
 	if (rc < 0) {
 		ALOGE("%s: enum fmt failed!", __func__);
 		goto error;
 	}
 
-	width = exynos_camera->recording_width;
-	height = exynos_camera->recording_height;
+	width = smdk4210_camera->recording_width;
+	height = smdk4210_camera->recording_height;
 
-	rc = exynos_v4l2_s_fmt_pix_cap(exynos_camera, 2, width, height, format, V4L2_PIX_FMT_MODE_CAPTURE);
+	rc = smdk4210_v4l2_s_fmt_pix_cap(smdk4210_camera, 2, width, height, format, V4L2_PIX_FMT_MODE_CAPTURE);
 	if (rc < 0) {
 		ALOGE("%s: s fmt failed!", __func__);
 		goto error;
 	}
 
-	for (i = EXYNOS_CAMERA_MAX_BUFFERS_COUNT; i >= EXYNOS_CAMERA_MIN_BUFFERS_COUNT; i--) {
-		rc = exynos_v4l2_reqbufs_cap(exynos_camera, 2, i);
+	for (i = SMDK4210_CAMERA_MAX_BUFFERS_COUNT; i >= SMDK4210_CAMERA_MIN_BUFFERS_COUNT; i--) {
+		rc = smdk4210_v4l2_reqbufs_cap(smdk4210_camera, 2, i);
 		if (rc >= 0)
 			break;
 	}
@@ -2183,25 +2183,25 @@ int exynos_camera_recording_start(struct exynos_camera *exynos_camera)
 		goto error;
 	}
 
-	exynos_camera->recording_buffers_count = rc;
-	ALOGD("Found %d recording buffers available!", exynos_camera->recording_buffers_count);
+	smdk4210_camera->recording_buffers_count = rc;
+	ALOGD("Found %d recording buffers available!", smdk4210_camera->recording_buffers_count);
 
-	for (i = 0; i < exynos_camera->recording_buffers_count; i++) {
-		rc = exynos_v4l2_querybuf_cap(exynos_camera, 2, i);
+	for (i = 0; i < smdk4210_camera->recording_buffers_count; i++) {
+		rc = smdk4210_v4l2_querybuf_cap(smdk4210_camera, 2, i);
 		if (rc < 0) {
 			ALOGE("%s: querybuf failed!", __func__);
 			goto error;
 		}
 	}
 
-	if (exynos_camera->callbacks.request_memory != NULL) {
-		if (exynos_camera->recording_memory != NULL && exynos_camera->recording_memory->release != NULL)
-			exynos_camera->recording_memory->release(exynos_camera->recording_memory);
+	if (smdk4210_camera->callbacks.request_memory != NULL) {
+		if (smdk4210_camera->recording_memory != NULL && smdk4210_camera->recording_memory->release != NULL)
+			smdk4210_camera->recording_memory->release(smdk4210_camera->recording_memory);
 
-		exynos_camera->recording_memory =
-			exynos_camera->callbacks.request_memory(-1, sizeof(struct exynos_camera_addrs),
-				exynos_camera->recording_buffers_count, 0);
-		if (exynos_camera->recording_memory == NULL) {
+		smdk4210_camera->recording_memory =
+			smdk4210_camera->callbacks.request_memory(-1, sizeof(struct smdk4210_camera_addrs),
+				smdk4210_camera->recording_buffers_count, 0);
+		if (smdk4210_camera->recording_memory == NULL) {
 			ALOGE("%s: memory request failed!", __func__);
 			goto error;
 		}
@@ -2210,93 +2210,93 @@ int exynos_camera_recording_start(struct exynos_camera *exynos_camera)
 		goto error;
 	}
 
-	for (i = 0; i < exynos_camera->recording_buffers_count; i++) {
-		rc = exynos_v4l2_qbuf_cap(exynos_camera, 2, i);
+	for (i = 0; i < smdk4210_camera->recording_buffers_count; i++) {
+		rc = smdk4210_v4l2_qbuf_cap(smdk4210_camera, 2, i);
 		if (rc < 0) {
 			ALOGE("%s: qbuf failed!", __func__);
 			goto error;
 		}
 	}
 
-	rc = exynos_v4l2_s_ctrl(exynos_camera, 2, V4L2_CID_ROTATION,
-		exynos_camera->camera_rotation);
+	rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 2, V4L2_CID_ROTATION,
+		smdk4210_camera->camera_rotation);
 	if (rc < 0) {
 		ALOGE("%s: s ctrl failed!", __func__);
 		goto error;
 	}
 
-	rc = exynos_v4l2_s_ctrl(exynos_camera, 2, V4L2_CID_HFLIP,
-		exynos_camera->camera_hflip);
+	rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 2, V4L2_CID_HFLIP,
+		smdk4210_camera->camera_hflip);
 	if (rc < 0) {
 		ALOGE("%s: s ctrl failed!", __func__);
 		goto error;
 	}
 
-	rc = exynos_v4l2_s_ctrl(exynos_camera, 2, V4L2_CID_VFLIP,
-		exynos_camera->camera_vflip);
+	rc = smdk4210_v4l2_s_ctrl(smdk4210_camera, 2, V4L2_CID_VFLIP,
+		smdk4210_camera->camera_vflip);
 	if (rc < 0) {
 		ALOGE("%s: s ctrl failed!", __func__);
 		goto error;
 	}
 
-	rc = exynos_v4l2_streamon_cap(exynos_camera, 2);
+	rc = smdk4210_v4l2_streamon_cap(smdk4210_camera, 2);
 	if (rc < 0) {
 		ALOGE("%s: streamon failed!", __func__);
 		goto error;
 	}
 
-	pthread_mutex_init(&exynos_camera->recording_mutex, NULL);
+	pthread_mutex_init(&smdk4210_camera->recording_mutex, NULL);
 
-	exynos_camera->recording_enabled = 1;
+	smdk4210_camera->recording_enabled = 1;
 
-	pthread_mutex_unlock(&exynos_camera->preview_mutex);
+	pthread_mutex_unlock(&smdk4210_camera->preview_mutex);
 
 	return 0;
 error:
-	pthread_mutex_unlock(&exynos_camera->preview_mutex);
+	pthread_mutex_unlock(&smdk4210_camera->preview_mutex);
 
 	return -1;
 }
 
-void exynos_camera_recording_stop(struct exynos_camera *exynos_camera)
+void smdk4210_camera_recording_stop(struct smdk4210_camera *smdk4210_camera)
 {
 	int rc;
 
-	if (exynos_camera == NULL)
+	if (smdk4210_camera == NULL)
 		return;
 
-	if (!exynos_camera->recording_enabled) {
+	if (!smdk4210_camera->recording_enabled) {
 		ALOGE("Recording was already stopped!");
 		return;
 	}
 
-	exynos_camera->recording_enabled = 0;
+	smdk4210_camera->recording_enabled = 0;
 
-	pthread_mutex_lock(&exynos_camera->preview_mutex);
+	pthread_mutex_lock(&smdk4210_camera->preview_mutex);
 
-	rc = exynos_v4l2_streamoff_cap(exynos_camera, 2);
+	rc = smdk4210_v4l2_streamoff_cap(smdk4210_camera, 2);
 	if (rc < 0) {
 		ALOGE("%s: streamoff failed!", __func__);
 	}
 
-	if (exynos_camera->recording_memory != NULL && exynos_camera->recording_memory->release != NULL) {
-		exynos_camera->recording_memory->release(exynos_camera->recording_memory);
-		exynos_camera->recording_memory = NULL;
+	if (smdk4210_camera->recording_memory != NULL && smdk4210_camera->recording_memory->release != NULL) {
+		smdk4210_camera->recording_memory->release(smdk4210_camera->recording_memory);
+		smdk4210_camera->recording_memory = NULL;
 	}
 
-	pthread_mutex_unlock(&exynos_camera->preview_mutex);
+	pthread_mutex_unlock(&smdk4210_camera->preview_mutex);
 
-	pthread_mutex_destroy(&exynos_camera->recording_mutex);
+	pthread_mutex_destroy(&smdk4210_camera->recording_mutex);
 }
 
 /*
- * Exynos Camera OPS
+ * SMDK4210 Camera OPS
  */
 
-int exynos_camera_set_preview_window(struct camera_device *dev,
+int smdk4210_camera_set_preview_window(struct camera_device *dev,
 	struct preview_stream_ops *w)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 
 	int width, height, format, hal_format;
 
@@ -2311,25 +2311,25 @@ int exynos_camera_set_preview_window(struct camera_device *dev,
 	if (dev == NULL || dev->priv == NULL)
 		return -EINVAL;
 
-	exynos_camera = (struct exynos_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
 
 	if (w == NULL)
 		return 0;
 
-	exynos_camera->preview_window = w;
+	smdk4210_camera->preview_window = w;
 
 	if (w->set_buffer_count == NULL || w->set_usage == NULL || w->set_buffers_geometry == NULL)
 		return -EINVAL;
 
-	if (exynos_camera->preview_buffers_count <= 0) {
+	if (smdk4210_camera->preview_buffers_count <= 0) {
 		ALOGE("%s: Invalid preview buffers count", __func__);
-		exynos_camera->preview_buffers_count = EXYNOS_CAMERA_MAX_BUFFERS_COUNT;
+		smdk4210_camera->preview_buffers_count = SMDK4210_CAMERA_MAX_BUFFERS_COUNT;
 	}
 
-	rc = w->set_buffer_count(w, exynos_camera->preview_buffers_count);
+	rc = w->set_buffer_count(w, smdk4210_camera->preview_buffers_count);
 	if (rc) {
 		ALOGE("%s: Unable to set buffer count (%d)", __func__,
-			exynos_camera->preview_buffers_count);
+			smdk4210_camera->preview_buffers_count);
 		return -1;
 	}
 
@@ -2339,9 +2339,9 @@ int exynos_camera_set_preview_window(struct camera_device *dev,
 		return -1;
 	}
 
-	width = exynos_camera->preview_width;
-	height = exynos_camera->preview_height;
-	format = exynos_camera->preview_format;
+	width = smdk4210_camera->preview_width;
+	height = smdk4210_camera->preview_height;
+	format = smdk4210_camera->preview_format;
 
 	switch (format) {
 		case V4L2_PIX_FMT_NV21:
@@ -2368,119 +2368,119 @@ int exynos_camera_set_preview_window(struct camera_device *dev,
 	}
 
 	// Unlock preview lock
-	pthread_mutex_unlock(&exynos_camera->preview_lock_mutex);
+	pthread_mutex_unlock(&smdk4210_camera->preview_lock_mutex);
 
 	return 0;
 }
 
-void exynos_camera_set_callbacks(struct camera_device *dev,
+void smdk4210_camera_set_callbacks(struct camera_device *dev,
 	camera_notify_callback notify_cb,
 	camera_data_callback data_cb,
 	camera_data_timestamp_callback data_cb_timestamp,
 	camera_request_memory get_memory,
 	void *user)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 
 	ALOGD("%s(%p, %p)", __func__, dev, user);
 
 	if (dev == NULL || dev->priv == NULL)
 		return;
 
-	exynos_camera = (struct exynos_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
 
-	exynos_camera->callbacks.notify = notify_cb;
-	exynos_camera->callbacks.data = data_cb;
-	exynos_camera->callbacks.data_timestamp = data_cb_timestamp;
-	exynos_camera->callbacks.request_memory = get_memory;
-	exynos_camera->callbacks.user = user;
+	smdk4210_camera->callbacks.notify = notify_cb;
+	smdk4210_camera->callbacks.data = data_cb;
+	smdk4210_camera->callbacks.data_timestamp = data_cb_timestamp;
+	smdk4210_camera->callbacks.request_memory = get_memory;
+	smdk4210_camera->callbacks.user = user;
 }
 
-void exynos_camera_enable_msg_type(struct camera_device *dev, int32_t msg_type)
+void smdk4210_camera_enable_msg_type(struct camera_device *dev, int32_t msg_type)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 
 	ALOGD("%s(%p, %d)", __func__, dev, msg_type);
 
 	if (dev == NULL || dev->priv == NULL)
 		return;
 
-	exynos_camera = (struct exynos_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
 
-	exynos_camera->messages_enabled |= msg_type;
+	smdk4210_camera->messages_enabled |= msg_type;
 }
 
-void exynos_camera_disable_msg_type(struct camera_device *dev, int32_t msg_type)
+void smdk4210_camera_disable_msg_type(struct camera_device *dev, int32_t msg_type)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 
 	ALOGD("%s(%p, %d)", __func__, dev, msg_type);
 
 	if (dev == NULL || dev->priv == NULL)
 		return;
 
-	exynos_camera = (struct exynos_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
 
-	exynos_camera->messages_enabled &= ~msg_type;
+	smdk4210_camera->messages_enabled &= ~msg_type;
 }
 
-int exynos_camera_msg_type_enabled(struct camera_device *dev, int32_t msg_type)
+int smdk4210_camera_msg_type_enabled(struct camera_device *dev, int32_t msg_type)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 
 	ALOGD("%s(%p, %d)", __func__, dev, msg_type);
 
 	if (dev == NULL || dev->priv == NULL)
 		return -EINVAL;
 
-	exynos_camera = (struct exynos_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
 
-	return exynos_camera->messages_enabled & msg_type;
+	return smdk4210_camera->messages_enabled & msg_type;
 }
 
-int exynos_camera_start_preview(struct camera_device *dev)
+int smdk4210_camera_start_preview(struct camera_device *dev)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 
 	ALOGD("%s(%p)", __func__, dev);
 
 	if (dev == NULL || dev->priv == NULL)
 		return -EINVAL;
 
-	exynos_camera = (struct exynos_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
 
-	return exynos_camera_preview_start(exynos_camera);
+	return smdk4210_camera_preview_start(smdk4210_camera);
 }
 
-void exynos_camera_stop_preview(struct camera_device *dev)
+void smdk4210_camera_stop_preview(struct camera_device *dev)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 
 	ALOGD("%s(%p)", __func__, dev);
 
 	if (dev == NULL || dev->priv == NULL)
 		return;
 
-	exynos_camera = (struct exynos_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
 
-	exynos_camera_preview_stop(exynos_camera);
+	smdk4210_camera_preview_stop(smdk4210_camera);
 }
 
-int exynos_camera_preview_enabled(struct camera_device *dev)
+int smdk4210_camera_preview_enabled(struct camera_device *dev)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 
 	ALOGD("%s(%p)", __func__, dev);
 
 	if (dev == NULL || dev->priv == NULL)
 		return -EINVAL;
 
-	exynos_camera = (struct exynos_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
 
-	return exynos_camera->preview_enabled;
+	return smdk4210_camera->preview_enabled;
 }
 
-int exynos_camera_store_meta_data_in_buffers(struct camera_device *dev,
+int smdk4210_camera_store_meta_data_in_buffers(struct camera_device *dev,
 	int enable)
 {
 	ALOGD("%s(%p, %d)", __func__, dev, enable);
@@ -2493,121 +2493,121 @@ int exynos_camera_store_meta_data_in_buffers(struct camera_device *dev,
 	return 0;
 }
 
-int exynos_camera_start_recording(struct camera_device *dev)
+int smdk4210_camera_start_recording(struct camera_device *dev)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 
 	ALOGD("%s(%p)", __func__, dev);
 
-	exynos_camera = (struct exynos_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
 
-	return exynos_camera_recording_start(exynos_camera);
+	return smdk4210_camera_recording_start(smdk4210_camera);
 }
 
-void exynos_camera_stop_recording(struct camera_device *dev)
+void smdk4210_camera_stop_recording(struct camera_device *dev)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 
 	ALOGD("%s(%p)", __func__, dev);
 
-	exynos_camera = (struct exynos_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
 
-	exynos_camera_recording_stop(exynos_camera);
+	smdk4210_camera_recording_stop(smdk4210_camera);
 }
 
-int exynos_camera_recording_enabled(struct camera_device *dev)
+int smdk4210_camera_recording_enabled(struct camera_device *dev)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 
 	ALOGD("%s(%p)", __func__, dev);
 
 	if (dev == NULL || dev->priv == NULL)
 		return -EINVAL;
 
-	exynos_camera = (struct exynos_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
 
-	return exynos_camera->recording_enabled;
+	return smdk4210_camera->recording_enabled;
 }
 
-void exynos_camera_release_recording_frame(struct camera_device *dev,
+void smdk4210_camera_release_recording_frame(struct camera_device *dev,
 	const void *opaque)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 
 	ALOGV("%s(%p, %p)", __func__, dev, opaque);
 
 	if (dev == NULL || dev->priv == NULL)
 		return;
 
-	exynos_camera = (struct exynos_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
 
-	exynos_camera_recording_frame_release(exynos_camera, (void *) opaque);
+	smdk4210_camera_recording_frame_release(smdk4210_camera, (void *) opaque);
 }
 
-int exynos_camera_auto_focus(struct camera_device *dev)
+int smdk4210_camera_auto_focus(struct camera_device *dev)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 
 	ALOGD("%s(%p)", __func__, dev);
 
 	if (dev == NULL || dev->priv == NULL)
 		return -EINVAL;
 
-	exynos_camera = (struct exynos_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
 
-	return exynos_camera_auto_focus_start(exynos_camera);
+	return smdk4210_camera_auto_focus_start(smdk4210_camera);
 }
 
-int exynos_camera_cancel_auto_focus(struct camera_device *dev)
+int smdk4210_camera_cancel_auto_focus(struct camera_device *dev)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 
 	ALOGD("%s(%p)", __func__, dev);
 
 	if (dev == NULL || dev->priv == NULL)
 		return -EINVAL;
 
-	exynos_camera = (struct exynos_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
 
-	exynos_camera_auto_focus_stop(exynos_camera);
+	smdk4210_camera_auto_focus_stop(smdk4210_camera);
 
 	return 0;
 }
 
-int exynos_camera_take_picture(struct camera_device *dev)
+int smdk4210_camera_take_picture(struct camera_device *dev)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 
 	ALOGD("%s(%p)", __func__, dev);
 
 	if (dev == NULL || dev->priv == NULL)
 		return -EINVAL;
 
-	exynos_camera = (struct exynos_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
 
-	return exynos_camera_picture_start(exynos_camera);
+	return smdk4210_camera_picture_start(smdk4210_camera);
 }
 
-int exynos_camera_cancel_picture(struct camera_device *dev)
+int smdk4210_camera_cancel_picture(struct camera_device *dev)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 
 	ALOGD("%s(%p)", __func__, dev);
 
 	if (dev == NULL || dev->priv == NULL)
 		return -EINVAL;
 
-	exynos_camera = (struct exynos_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
 
-	exynos_camera_picture_stop(exynos_camera);
+	smdk4210_camera_picture_stop(smdk4210_camera);
 
 	return 0;
 }
 
-int exynos_camera_set_parameters(struct camera_device *dev,
+int smdk4210_camera_set_parameters(struct camera_device *dev,
 	const char *params)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 	int rc;
 
 	ALOGD("%s(%p, %s)", __func__, dev, params);
@@ -2615,15 +2615,15 @@ int exynos_camera_set_parameters(struct camera_device *dev,
 	if (dev == NULL || dev->priv == NULL || params == NULL)
 		return -EINVAL;
 
-	exynos_camera = (struct exynos_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
 
-	rc = exynos_params_string_set(exynos_camera, (char *) params);
+	rc = smdk4210_params_string_set(smdk4210_camera, (char *) params);
 	if (rc < 0) {
 		ALOGE("%s: Unable to set params string", __func__);
 		return -1;
 	}
 
-	rc = exynos_camera_params_apply(exynos_camera);
+	rc = smdk4210_camera_params_apply(smdk4210_camera);
 	if (rc < 0) {
 		ALOGE("%s: Unable to apply params", __func__);
 		return -1;
@@ -2632,9 +2632,9 @@ int exynos_camera_set_parameters(struct camera_device *dev,
 	return 0;
 }
 
-char *exynos_camera_get_parameters(struct camera_device *dev)
+char *smdk4210_camera_get_parameters(struct camera_device *dev)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 	char *params;
 
 	ALOGD("%s(%p)", __func__, dev);
@@ -2642,9 +2642,9 @@ char *exynos_camera_get_parameters(struct camera_device *dev)
 	if (dev == NULL || dev->priv == NULL)
 		return NULL;
 
-	exynos_camera = (struct exynos_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
 
-	params = exynos_params_string_get(exynos_camera);
+	params = smdk4210_params_string_get(smdk4210_camera);
 	if (params == NULL) {
 		ALOGE("%s: Couldn't find any param", __func__);
 		return strdup("");
@@ -2653,7 +2653,7 @@ char *exynos_camera_get_parameters(struct camera_device *dev)
 	return params;
 }
 
-void exynos_camera_put_parameters(struct camera_device *dev, char *params)
+void smdk4210_camera_put_parameters(struct camera_device *dev, char *params)
 {
 	ALOGD("%s(%p)", __func__, dev);
 
@@ -2661,7 +2661,7 @@ void exynos_camera_put_parameters(struct camera_device *dev, char *params)
 		free(params);
 }
 
-int exynos_camera_send_command(struct camera_device *dev,
+int smdk4210_camera_send_command(struct camera_device *dev,
 	int32_t cmd, int32_t arg1, int32_t arg2)
 {
 	ALOGD("%s(%p, %d, %d, %d)", __func__, dev, cmd, arg1, arg2);
@@ -2669,31 +2669,31 @@ int exynos_camera_send_command(struct camera_device *dev,
 	return 0;
 }
 
-void exynos_camera_release(struct camera_device *dev)
+void smdk4210_camera_release(struct camera_device *dev)
 {
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 
 	ALOGD("%s(%p)", __func__, dev);
 
 	if (dev == NULL || dev->priv == NULL)
 		return;
 
-	exynos_camera = (struct exynos_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
 
-	if (exynos_camera->preview_memory != NULL && exynos_camera->preview_memory->release != NULL) {
-		exynos_camera->preview_memory->release(exynos_camera->preview_memory);
-		exynos_camera->preview_memory = NULL;
+	if (smdk4210_camera->preview_memory != NULL && smdk4210_camera->preview_memory->release != NULL) {
+		smdk4210_camera->preview_memory->release(smdk4210_camera->preview_memory);
+		smdk4210_camera->preview_memory = NULL;
 	}
 
-	if (exynos_camera->picture_memory != NULL && exynos_camera->picture_memory->release != NULL) {
-		exynos_camera->picture_memory->release(exynos_camera->picture_memory);
-		exynos_camera->picture_memory = NULL;
+	if (smdk4210_camera->picture_memory != NULL && smdk4210_camera->picture_memory->release != NULL) {
+		smdk4210_camera->picture_memory->release(smdk4210_camera->picture_memory);
+		smdk4210_camera->picture_memory = NULL;
 	}
 
-	exynos_camera_deinit(exynos_camera);
+	smdk4210_camera_deinit(smdk4210_camera);
 }
 
-int exynos_camera_dump(struct camera_device *dev, int fd)
+int smdk4210_camera_dump(struct camera_device *dev, int fd)
 {
 	ALOGD("%s(%p, %d)", __func__, dev, fd);
 
@@ -2704,36 +2704,36 @@ int exynos_camera_dump(struct camera_device *dev, int fd)
  * Interface
  */
 
-struct camera_device_ops exynos_camera_ops = {
-	.set_preview_window = exynos_camera_set_preview_window,
-	.set_callbacks = exynos_camera_set_callbacks,
-	.enable_msg_type = exynos_camera_enable_msg_type,
-	.disable_msg_type = exynos_camera_disable_msg_type,
-	.msg_type_enabled = exynos_camera_msg_type_enabled,
-	.start_preview = exynos_camera_start_preview,
-	.stop_preview = exynos_camera_stop_preview,
-	.preview_enabled = exynos_camera_preview_enabled,
-	.store_meta_data_in_buffers = exynos_camera_store_meta_data_in_buffers,
-	.start_recording = exynos_camera_start_recording,
-	.stop_recording = exynos_camera_stop_recording,
-	.recording_enabled = exynos_camera_recording_enabled,
-	.release_recording_frame = exynos_camera_release_recording_frame,
-	.auto_focus = exynos_camera_auto_focus,
-	.cancel_auto_focus = exynos_camera_cancel_auto_focus,
-	.take_picture = exynos_camera_take_picture,
-	.cancel_picture = exynos_camera_cancel_picture,
-	.set_parameters = exynos_camera_set_parameters,
-	.get_parameters = exynos_camera_get_parameters,
-	.put_parameters = exynos_camera_put_parameters,
-	.send_command = exynos_camera_send_command,
-	.release = exynos_camera_release,
-	.dump = exynos_camera_dump,
+struct camera_device_ops smdk4210_camera_ops = {
+	.set_preview_window = smdk4210_camera_set_preview_window,
+	.set_callbacks = smdk4210_camera_set_callbacks,
+	.enable_msg_type = smdk4210_camera_enable_msg_type,
+	.disable_msg_type = smdk4210_camera_disable_msg_type,
+	.msg_type_enabled = smdk4210_camera_msg_type_enabled,
+	.start_preview = smdk4210_camera_start_preview,
+	.stop_preview = smdk4210_camera_stop_preview,
+	.preview_enabled = smdk4210_camera_preview_enabled,
+	.store_meta_data_in_buffers = smdk4210_camera_store_meta_data_in_buffers,
+	.start_recording = smdk4210_camera_start_recording,
+	.stop_recording = smdk4210_camera_stop_recording,
+	.recording_enabled = smdk4210_camera_recording_enabled,
+	.release_recording_frame = smdk4210_camera_release_recording_frame,
+	.auto_focus = smdk4210_camera_auto_focus,
+	.cancel_auto_focus = smdk4210_camera_cancel_auto_focus,
+	.take_picture = smdk4210_camera_take_picture,
+	.cancel_picture = smdk4210_camera_cancel_picture,
+	.set_parameters = smdk4210_camera_set_parameters,
+	.get_parameters = smdk4210_camera_get_parameters,
+	.put_parameters = smdk4210_camera_put_parameters,
+	.send_command = smdk4210_camera_send_command,
+	.release = smdk4210_camera_release,
+	.dump = smdk4210_camera_dump,
 };
 
-int exynos_camera_close(hw_device_t *device)
+int smdk4210_camera_close(hw_device_t *device)
 {
 	struct camera_device *camera_device;
-	struct exynos_camera *exynos_camera;
+	struct smdk4210_camera *smdk4210_camera;
 
 	ALOGD("%s(%p)", __func__, device);
 
@@ -2751,11 +2751,11 @@ int exynos_camera_close(hw_device_t *device)
 	return 0;
 }
 
-int exynos_camera_open(const struct hw_module_t* module, const char *camera_id,
+int smdk4210_camera_open(const struct hw_module_t* module, const char *camera_id,
 	struct hw_device_t** device)
 {
 	struct camera_device *camera_device = NULL;
-	struct exynos_camera *exynos_camera = NULL;
+	struct smdk4210_camera *smdk4210_camera = NULL;
 	int id;
 	int rc;
 
@@ -2768,17 +2768,17 @@ int exynos_camera_open(const struct hw_module_t* module, const char *camera_id,
 	if (id < 0)
 		return -EINVAL;
 
-	exynos_camera = calloc(1, sizeof(struct exynos_camera));
-	exynos_camera->config = exynos_camera_config;
+	smdk4210_camera = calloc(1, sizeof(struct smdk4210_camera));
+	smdk4210_camera->config = smdk4210_camera_config;
 
-	if (exynos_camera->config->presets_count > EXYNOS_CAMERA_MAX_PRESETS_COUNT ||
-		exynos_camera->config->v4l2_nodes_count > EXYNOS_CAMERA_MAX_V4L2_NODES_COUNT)
+	if (smdk4210_camera->config->presets_count > SMDK4210_CAMERA_MAX_PRESETS_COUNT ||
+		smdk4210_camera->config->v4l2_nodes_count > SMDK4210_CAMERA_MAX_V4L2_NODES_COUNT)
 		goto error_preset;
 
-	if (id >= exynos_camera->config->presets_count)
+	if (id >= smdk4210_camera->config->presets_count)
 		goto error_preset;
 
-	rc = exynos_camera_init(exynos_camera, id);
+	rc = smdk4210_camera_init(smdk4210_camera, id);
 	if (rc < 0) {
 		ALOGE("%s: Unable to init camera", __func__);
 		goto error;
@@ -2788,66 +2788,66 @@ int exynos_camera_open(const struct hw_module_t* module, const char *camera_id,
 	camera_device->common.tag = HARDWARE_DEVICE_TAG;
 	camera_device->common.version = 0;
 	camera_device->common.module = (struct hw_module_t *) module;
-	camera_device->common.close = exynos_camera_close;
+	camera_device->common.close = smdk4210_camera_close;
 
-	camera_device->ops = &exynos_camera_ops;
-	camera_device->priv = exynos_camera;
+	camera_device->ops = &smdk4210_camera_ops;
+	camera_device->priv = smdk4210_camera;
 
 	*device = (struct hw_device_t *) &(camera_device->common);
 
 	return 0;
 
 error:
-	exynos_camera_deinit(exynos_camera);
+	smdk4210_camera_deinit(smdk4210_camera);
 
 error_device:
 	if (camera_device != NULL)
 		free(camera_device);
 
 error_preset:
-	if (exynos_camera != NULL)
-		free(exynos_camera);
+	if (smdk4210_camera != NULL)
+		free(smdk4210_camera);
 
 	return -1;
 }
 
-int exynos_camera_get_number_of_cameras(void)
+int smdk4210_camera_get_number_of_cameras(void)
 {
 	ALOGD("%s()", __func__);
 
-	if (exynos_camera_config == NULL || exynos_camera_config->presets == NULL) {
+	if (smdk4210_camera_config == NULL || smdk4210_camera_config->presets == NULL) {
 		ALOGE("%s: Unable to find proper camera config", __func__);
 		return -1;
 	}
 
-	return exynos_camera_config->presets_count;
+	return smdk4210_camera_config->presets_count;
 }
 
-int exynos_camera_get_camera_info(int id, struct camera_info *info)
+int smdk4210_camera_get_camera_info(int id, struct camera_info *info)
 {
 	ALOGD("%s(%d, %p)", __func__, id, info);
 
 	if (id < 0 || info == NULL)
 		return -EINVAL;
 
-	if (exynos_camera_config == NULL || exynos_camera_config->presets == NULL) {
+	if (smdk4210_camera_config == NULL || smdk4210_camera_config->presets == NULL) {
 		ALOGE("%s: Unable to find proper camera config", __func__);
 		return -1;
 	}
 
-	if (id >= exynos_camera_config->presets_count)
+	if (id >= smdk4210_camera_config->presets_count)
 		return -EINVAL;
 
-	ALOGD("Selected camera: %s", exynos_camera_config->presets[id].name);
+	ALOGD("Selected camera: %s", smdk4210_camera_config->presets[id].name);
 
-	info->facing = exynos_camera_config->presets[id].facing;
-	info->orientation = exynos_camera_config->presets[id].orientation;
+	info->facing = smdk4210_camera_config->presets[id].facing;
+	info->orientation = smdk4210_camera_config->presets[id].orientation;
 
 	return 0;
 }
 
-struct hw_module_methods_t exynos_camera_module_methods = {
-	.open = exynos_camera_open,
+struct hw_module_methods_t smdk4210_camera_module_methods = {
+	.open = smdk4210_camera_open,
 };
 
 struct camera_module HAL_MODULE_INFO_SYM = {
@@ -2856,10 +2856,10 @@ struct camera_module HAL_MODULE_INFO_SYM = {
 		.hal_api_version = HARDWARE_HAL_API_VERSION,
 		.module_api_version = CAMERA_MODULE_API_VERSION_1_0,
 		.id = CAMERA_HARDWARE_MODULE_ID,
-		.name = "Exynos Camera",
+		.name = "SMDK4210 Camera",
 		.author = "Paul Kocialkowski",
-		.methods = &exynos_camera_module_methods,
+		.methods = &smdk4210_camera_module_methods,
 	},
-	.get_number_of_cameras = exynos_camera_get_number_of_cameras,
-	.get_camera_info = exynos_camera_get_camera_info,
+	.get_number_of_cameras = smdk4210_camera_get_number_of_cameras,
+	.get_camera_info = smdk4210_camera_get_camera_info,
 };
