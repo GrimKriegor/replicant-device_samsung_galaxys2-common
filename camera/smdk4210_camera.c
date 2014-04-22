@@ -2293,7 +2293,7 @@ void smdk4210_camera_recording_stop(struct smdk4210_camera *smdk4210_camera)
  * SMDK4210 Camera OPS
  */
 
-int smdk4210_camera_set_preview_window(struct camera_device *dev,
+int smdk4210_camera_set_preview_window(struct camera_device *device,
 	struct preview_stream_ops *w)
 {
 	struct smdk4210_camera *smdk4210_camera;
@@ -2306,12 +2306,12 @@ int smdk4210_camera_set_preview_window(struct camera_device *dev,
 
 	int rc;
 
-	ALOGD("%s(%p, %p)", __func__, dev, w);
+	ALOGD("%s(%p, %p)", __func__, device, w);
 
-	if (dev == NULL || dev->priv == NULL)
+	if (device == NULL || device->priv == NULL)
 		return -EINVAL;
 
-	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) device->priv;
 
 	if (w == NULL)
 		return 0;
@@ -2373,7 +2373,7 @@ int smdk4210_camera_set_preview_window(struct camera_device *dev,
 	return 0;
 }
 
-void smdk4210_camera_set_callbacks(struct camera_device *dev,
+void smdk4210_camera_set_callbacks(struct camera_device *device,
 	camera_notify_callback notify_cb,
 	camera_data_callback data_cb,
 	camera_data_timestamp_callback data_cb_timestamp,
@@ -2382,12 +2382,12 @@ void smdk4210_camera_set_callbacks(struct camera_device *dev,
 {
 	struct smdk4210_camera *smdk4210_camera;
 
-	ALOGD("%s(%p, %p)", __func__, dev, user);
+	ALOGD("%s(%p, %p)", __func__, device, user);
 
-	if (dev == NULL || dev->priv == NULL)
+	if (device == NULL || device->priv == NULL)
 		return;
 
-	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) device->priv;
 
 	smdk4210_camera->callbacks.notify = notify_cb;
 	smdk4210_camera->callbacks.data = data_cb;
@@ -2396,94 +2396,97 @@ void smdk4210_camera_set_callbacks(struct camera_device *dev,
 	smdk4210_camera->callbacks.user = user;
 }
 
-void smdk4210_camera_enable_msg_type(struct camera_device *dev, int32_t msg_type)
+void smdk4210_camera_enable_msg_type(struct camera_device *device,
+	int32_t msg_type)
 {
 	struct smdk4210_camera *smdk4210_camera;
 
-	ALOGD("%s(%p, %d)", __func__, dev, msg_type);
+	ALOGD("%s(%p, %d)", __func__, device, msg_type);
 
-	if (dev == NULL || dev->priv == NULL)
+	if (device == NULL || device->priv == NULL)
 		return;
 
-	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) device->priv;
 
 	smdk4210_camera->messages_enabled |= msg_type;
 }
 
-void smdk4210_camera_disable_msg_type(struct camera_device *dev, int32_t msg_type)
+void smdk4210_camera_disable_msg_type(struct camera_device *device,
+	int32_t msg_type)
 {
 	struct smdk4210_camera *smdk4210_camera;
 
-	ALOGD("%s(%p, %d)", __func__, dev, msg_type);
+	ALOGD("%s(%p, %d)", __func__, device, msg_type);
 
-	if (dev == NULL || dev->priv == NULL)
+	if (device == NULL || device->priv == NULL)
 		return;
 
-	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) device->priv;
 
 	smdk4210_camera->messages_enabled &= ~msg_type;
 }
 
-int smdk4210_camera_msg_type_enabled(struct camera_device *dev, int32_t msg_type)
+int smdk4210_camera_msg_type_enabled(struct camera_device *device,
+	int32_t msg_type)
 {
 	struct smdk4210_camera *smdk4210_camera;
 
-	ALOGD("%s(%p, %d)", __func__, dev, msg_type);
+	ALOGD("%s(%p, %d)", __func__, device, msg_type);
 
-	if (dev == NULL || dev->priv == NULL)
+	if (device == NULL || device->priv == NULL)
 		return -EINVAL;
 
-	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) device->priv;
 
 	return smdk4210_camera->messages_enabled & msg_type;
 }
 
-int smdk4210_camera_start_preview(struct camera_device *dev)
+int smdk4210_camera_start_preview(struct camera_device *device)
 {
 	struct smdk4210_camera *smdk4210_camera;
 
-	ALOGD("%s(%p)", __func__, dev);
+	ALOGD("%s(%p)", __func__, device);
 
-	if (dev == NULL || dev->priv == NULL)
+	if (device == NULL || device->priv == NULL)
 		return -EINVAL;
 
-	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) device->priv;
 
 	return smdk4210_camera_preview_start(smdk4210_camera);
 }
 
-void smdk4210_camera_stop_preview(struct camera_device *dev)
+void smdk4210_camera_stop_preview(struct camera_device *device)
 {
 	struct smdk4210_camera *smdk4210_camera;
 
-	ALOGD("%s(%p)", __func__, dev);
+	ALOGD("%s(%p)", __func__, device);
 
-	if (dev == NULL || dev->priv == NULL)
+	if (device == NULL || device->priv == NULL)
 		return;
 
-	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) device->priv;
 
 	smdk4210_camera_preview_stop(smdk4210_camera);
 }
 
-int smdk4210_camera_preview_enabled(struct camera_device *dev)
+int smdk4210_camera_preview_enabled(struct camera_device *device)
 {
 	struct smdk4210_camera *smdk4210_camera;
 
-	ALOGD("%s(%p)", __func__, dev);
+	ALOGD("%s(%p)", __func__, device);
 
-	if (dev == NULL || dev->priv == NULL)
+	if (device == NULL || device->priv == NULL)
 		return -EINVAL;
 
-	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) device->priv;
 
 	return smdk4210_camera->preview_enabled;
 }
 
-int smdk4210_camera_store_meta_data_in_buffers(struct camera_device *dev,
+int smdk4210_camera_store_meta_data_in_buffers(struct camera_device *device,
 	int enable)
 {
-	ALOGD("%s(%p, %d)", __func__, dev, enable);
+	ALOGD("%s(%p, %d)", __func__, device, enable);
 
 	if (!enable) {
 		ALOGE("%s: Cannot disable meta-data in buffers!", __func__);
@@ -2493,129 +2496,129 @@ int smdk4210_camera_store_meta_data_in_buffers(struct camera_device *dev,
 	return 0;
 }
 
-int smdk4210_camera_start_recording(struct camera_device *dev)
+int smdk4210_camera_start_recording(struct camera_device *device)
 {
 	struct smdk4210_camera *smdk4210_camera;
 
-	ALOGD("%s(%p)", __func__, dev);
+	ALOGD("%s(%p)", __func__, device);
 
-	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) device->priv;
 
 	return smdk4210_camera_recording_start(smdk4210_camera);
 }
 
-void smdk4210_camera_stop_recording(struct camera_device *dev)
+void smdk4210_camera_stop_recording(struct camera_device *device)
 {
 	struct smdk4210_camera *smdk4210_camera;
 
-	ALOGD("%s(%p)", __func__, dev);
+	ALOGD("%s(%p)", __func__, device);
 
-	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) device->priv;
 
 	smdk4210_camera_recording_stop(smdk4210_camera);
 }
 
-int smdk4210_camera_recording_enabled(struct camera_device *dev)
+int smdk4210_camera_recording_enabled(struct camera_device *device)
 {
 	struct smdk4210_camera *smdk4210_camera;
 
-	ALOGD("%s(%p)", __func__, dev);
+	ALOGD("%s(%p)", __func__, device);
 
-	if (dev == NULL || dev->priv == NULL)
+	if (device == NULL || device->priv == NULL)
 		return -EINVAL;
 
-	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) device->priv;
 
 	return smdk4210_camera->recording_enabled;
 }
 
-void smdk4210_camera_release_recording_frame(struct camera_device *dev,
+void smdk4210_camera_release_recording_frame(struct camera_device *device,
 	const void *opaque)
 {
 	struct smdk4210_camera *smdk4210_camera;
 
-	ALOGV("%s(%p, %p)", __func__, dev, opaque);
+	ALOGV("%s(%p, %p)", __func__, device, opaque);
 
-	if (dev == NULL || dev->priv == NULL)
+	if (device == NULL || device->priv == NULL)
 		return;
 
-	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) device->priv;
 
 	smdk4210_camera_recording_frame_release(smdk4210_camera, (void *) opaque);
 }
 
-int smdk4210_camera_auto_focus(struct camera_device *dev)
+int smdk4210_camera_auto_focus(struct camera_device *device)
 {
 	struct smdk4210_camera *smdk4210_camera;
 
-	ALOGD("%s(%p)", __func__, dev);
+	ALOGD("%s(%p)", __func__, device);
 
-	if (dev == NULL || dev->priv == NULL)
+	if (device == NULL || device->priv == NULL)
 		return -EINVAL;
 
-	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) device->priv;
 
 	return smdk4210_camera_auto_focus_start(smdk4210_camera);
 }
 
-int smdk4210_camera_cancel_auto_focus(struct camera_device *dev)
+int smdk4210_camera_cancel_auto_focus(struct camera_device *device)
 {
 	struct smdk4210_camera *smdk4210_camera;
 
-	ALOGD("%s(%p)", __func__, dev);
+	ALOGD("%s(%p)", __func__, device);
 
-	if (dev == NULL || dev->priv == NULL)
+	if (device == NULL || device->priv == NULL)
 		return -EINVAL;
 
-	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) device->priv;
 
 	smdk4210_camera_auto_focus_stop(smdk4210_camera);
 
 	return 0;
 }
 
-int smdk4210_camera_take_picture(struct camera_device *dev)
+int smdk4210_camera_take_picture(struct camera_device *device)
 {
 	struct smdk4210_camera *smdk4210_camera;
 
-	ALOGD("%s(%p)", __func__, dev);
+	ALOGD("%s(%p)", __func__, device);
 
-	if (dev == NULL || dev->priv == NULL)
+	if (device == NULL || device->priv == NULL)
 		return -EINVAL;
 
-	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) device->priv;
 
 	return smdk4210_camera_picture_start(smdk4210_camera);
 }
 
-int smdk4210_camera_cancel_picture(struct camera_device *dev)
+int smdk4210_camera_cancel_picture(struct camera_device *device)
 {
 	struct smdk4210_camera *smdk4210_camera;
 
-	ALOGD("%s(%p)", __func__, dev);
+	ALOGD("%s(%p)", __func__, device);
 
-	if (dev == NULL || dev->priv == NULL)
+	if (device == NULL || device->priv == NULL)
 		return -EINVAL;
 
-	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) device->priv;
 
 	smdk4210_camera_picture_stop(smdk4210_camera);
 
 	return 0;
 }
 
-int smdk4210_camera_set_parameters(struct camera_device *dev,
+int smdk4210_camera_set_parameters(struct camera_device *device,
 	const char *params)
 {
 	struct smdk4210_camera *smdk4210_camera;
 	int rc;
 
-	ALOGD("%s(%p, %s)", __func__, dev, params);
+	ALOGD("%s(%p, %s)", __func__, device, params);
 
-	if (dev == NULL || dev->priv == NULL || params == NULL)
+	if (device == NULL || device->priv == NULL || params == NULL)
 		return -EINVAL;
 
-	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) device->priv;
 
 	rc = smdk4210_params_string_set(smdk4210_camera, (char *) params);
 	if (rc < 0) {
@@ -2632,17 +2635,17 @@ int smdk4210_camera_set_parameters(struct camera_device *dev,
 	return 0;
 }
 
-char *smdk4210_camera_get_parameters(struct camera_device *dev)
+char *smdk4210_camera_get_parameters(struct camera_device *device)
 {
 	struct smdk4210_camera *smdk4210_camera;
 	char *params;
 
-	ALOGD("%s(%p)", __func__, dev);
+	ALOGD("%s(%p)", __func__, device);
 
-	if (dev == NULL || dev->priv == NULL)
+	if (device == NULL || device->priv == NULL)
 		return NULL;
 
-	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) device->priv;
 
 	params = smdk4210_params_string_get(smdk4210_camera);
 	if (params == NULL) {
@@ -2653,32 +2656,32 @@ char *smdk4210_camera_get_parameters(struct camera_device *dev)
 	return params;
 }
 
-void smdk4210_camera_put_parameters(struct camera_device *dev, char *params)
+void smdk4210_camera_put_parameters(struct camera_device *device, char *params)
 {
-	ALOGD("%s(%p)", __func__, dev);
+	ALOGD("%s(%p)", __func__, device);
 
 	if (params != NULL)
 		free(params);
 }
 
-int smdk4210_camera_send_command(struct camera_device *dev,
+int smdk4210_camera_send_command(struct camera_device *device,
 	int32_t cmd, int32_t arg1, int32_t arg2)
 {
-	ALOGD("%s(%p, %d, %d, %d)", __func__, dev, cmd, arg1, arg2);
+	ALOGD("%s(%p, %d, %d, %d)", __func__, device, cmd, arg1, arg2);
 
 	return 0;
 }
 
-void smdk4210_camera_release(struct camera_device *dev)
+void smdk4210_camera_release(struct camera_device *device)
 {
 	struct smdk4210_camera *smdk4210_camera;
 
-	ALOGD("%s(%p)", __func__, dev);
+	ALOGD("%s(%p)", __func__, device);
 
-	if (dev == NULL || dev->priv == NULL)
+	if (device == NULL || device->priv == NULL)
 		return;
 
-	smdk4210_camera = (struct smdk4210_camera *) dev->priv;
+	smdk4210_camera = (struct smdk4210_camera *) device->priv;
 
 	if (smdk4210_camera->preview_memory != NULL && smdk4210_camera->preview_memory->release != NULL) {
 		smdk4210_camera->preview_memory->release(smdk4210_camera->preview_memory);
@@ -2693,9 +2696,9 @@ void smdk4210_camera_release(struct camera_device *dev)
 	smdk4210_camera_deinit(smdk4210_camera);
 }
 
-int smdk4210_camera_dump(struct camera_device *dev, int fd)
+int smdk4210_camera_dump(struct camera_device *device, int fd)
 {
-	ALOGD("%s(%p, %d)", __func__, dev, fd);
+	ALOGD("%s(%p, %d)", __func__, device, fd);
 
 	return 0;
 }
