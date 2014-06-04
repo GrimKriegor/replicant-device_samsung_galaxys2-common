@@ -147,7 +147,7 @@ struct smdk4210_camera_preset smdk4210_camera_presets_galaxys2[] = {
 			.jpeg_quality = 90,
 
 			.recording_size = "640x480",
-			.recording_size_values = "640x480",
+			.recording_size_values = "720x480,640x480",
 			.recording_format = "yuv420sp",
 
 			.focus_mode = "fixed",
