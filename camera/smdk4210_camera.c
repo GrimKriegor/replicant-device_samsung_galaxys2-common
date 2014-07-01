@@ -58,7 +58,7 @@ struct smdk4210_camera_preset smdk4210_camera_presets_galaxys2[] = {
 		.vertical_view_angle = 47.1f,
 		.metering = METERING_CENTER,
 		.params = {
-			.preview_size_values = "1280x720,640x480,720x480,800x480,800x450,352x288,320x240,176x144",
+			.preview_size_values = "1280x720,800x480,720x480,640x480,320x240,176x144",
 			.preview_size = "640x480",
 			.preview_format_values = "yuv420sp,yuv420p,rgb565",
 			.preview_format = "rgb565",
@@ -352,6 +352,22 @@ int smdk4210_camera_buffer_length(int width, int height, int format)
 	return buffer_length;
 }
 
+int smdk4210_gralloc_format(int format)
+{
+	switch (format) {
+		case V4L2_PIX_FMT_NV21:
+			return HAL_PIXEL_FORMAT_YCrCb_420_SP;
+		case V4L2_PIX_FMT_YUV420:
+			return HAL_PIXEL_FORMAT_YV12;
+		case V4L2_PIX_FMT_RGB565:
+			return HAL_PIXEL_FORMAT_RGB_565;
+		case V4L2_PIX_FMT_RGB32:
+			return HAL_PIXEL_FORMAT_RGBX_8888;
+		default:
+			return HAL_PIXEL_FORMAT_YCrCb_420_SP;
+	}
+}
+
 int smdk4210_scale_yuv422(void *src, int src_width, int src_height, void *dst,
 	int dst_width, int dst_height)
 {
@@ -542,12 +558,16 @@ int smdk4210_camera_params_init(struct smdk4210_camera *smdk4210_camera, int id)
 
 int smdk4210_camera_params_apply(struct smdk4210_camera *smdk4210_camera)
 {
+	struct preview_stream_ops *preview_window;
+	int gralloc_format;
+
 	char *recording_hint_string;
 	char *recording_preview_size_string;
 
 	char *preview_size_string;
 	int preview_width = 0;
 	int preview_height = 0;
+	int preview_changed = 0;
 	char *preview_format_string;
 	int preview_format;
 	int preview_fps;
@@ -614,16 +634,18 @@ int smdk4210_camera_params_apply(struct smdk4210_camera *smdk4210_camera)
 		smdk4210_camera->preview_params_set = 1;
 		force = 1;
 	}
-
 	// Preview
 	preview_size_string = smdk4210_param_string_get(smdk4210_camera, "preview-size");
 	if (preview_size_string != NULL) {
 		sscanf(preview_size_string, "%dx%d", &preview_width, &preview_height);
 
-		if (preview_width != 0 && preview_width != smdk4210_camera->preview_width)
+		if (preview_width != 0 && preview_width != smdk4210_camera->preview_width) {
 			smdk4210_camera->preview_width = preview_width;
-		if (preview_height != 0 && preview_height != smdk4210_camera->preview_height)
+			preview_changed = 1;
+		} if (preview_height != 0 && preview_height != smdk4210_camera->preview_height) {
 			smdk4210_camera->preview_height = preview_height;
+			preview_changed = 1;
+		}
 	}
 
 	preview_format_string = smdk4210_param_string_get(smdk4210_camera, "preview-format");
@@ -1018,6 +1040,22 @@ int smdk4210_camera_params_apply(struct smdk4210_camera *smdk4210_camera)
 	ALOGD("%s: Preview size: %dx%d, picture size: %dx%d, recording size: %dx%d",
 		__func__, preview_width, preview_height, picture_width, picture_height,
 		recording_width, recording_height);
+
+	if (preview_changed && smdk4210_camera->preview_thread_running) {
+		preview_window = smdk4210_camera->preview_window;
+
+		smdk4210_camera_preview_stop(smdk4210_camera);
+
+		gralloc_format = smdk4210_gralloc_format(smdk4210_camera->preview_format);
+
+		rc = preview_window->set_buffers_geometry(preview_window, smdk4210_camera->preview_width, smdk4210_camera->preview_height, gralloc_format);
+		if (rc)
+			ALOGE("%s: Unable to set buffers geometry", __func__);
+
+		smdk4210_camera->preview_window = preview_window;
+
+		smdk4210_camera_preview_start(smdk4210_camera);
+	}
 
 	return 0;
 }
@@ -2374,7 +2412,7 @@ int smdk4210_camera_set_preview_window(struct camera_device *device,
 {
 	struct smdk4210_camera *smdk4210_camera;
 
-	int width, height, format, hal_format;
+	int width, height, format, gralloc_format;
 
 	buffer_handle_t *buffer;
 	int stride;
@@ -2419,25 +2457,9 @@ int smdk4210_camera_set_preview_window(struct camera_device *device,
 	height = smdk4210_camera->preview_height;
 	format = smdk4210_camera->preview_format;
 
-	switch (format) {
-		case V4L2_PIX_FMT_NV21:
-			hal_format = HAL_PIXEL_FORMAT_YCrCb_420_SP;
-			break;
-		case V4L2_PIX_FMT_YUV420:
-			hal_format = HAL_PIXEL_FORMAT_YV12;
-			break;
-		case V4L2_PIX_FMT_RGB565:
-			hal_format = HAL_PIXEL_FORMAT_RGB_565;
-			break;
-		case V4L2_PIX_FMT_RGB32:
-			hal_format = HAL_PIXEL_FORMAT_RGBX_8888;
-			break;
-		default:
-			hal_format = HAL_PIXEL_FORMAT_YCrCb_420_SP;
-			break;
-	}
+	gralloc_format = smdk4210_gralloc_format(format);
 
-	rc = w->set_buffers_geometry(w, width, height, hal_format);
+	rc = w->set_buffers_geometry(w, width, height, gralloc_format);
 	if (rc) {
 		ALOGE("%s: Unable to set buffers geometry", __func__);
 		return -1;

@@ -288,6 +288,7 @@ enum m5mo_af_status {
  */
 
 int smdk4210_camera_buffer_length(int width, int height, int format);
+int smdk4210_gralloc_format(int format);
 int smdk4210_scale_yuv422(void *src, int src_width, int src_height, void *dst,
 	int dst_width, int dst_height);
 
