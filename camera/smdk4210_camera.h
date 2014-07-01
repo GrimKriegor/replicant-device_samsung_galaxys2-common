@@ -42,6 +42,8 @@
 #define SMDK4210_CAMERA_CALLBACK_DEFINED(cb) \
 	(smdk4210_camera->callbacks.cb != NULL)
 
+#define SMDK4210_CAMERA_ALIGN(value) ((value + (0x10000 - 1)) & ~(0x10000 - 1))
+
 /*
  * Structures
  */
@@ -230,7 +232,6 @@ struct smdk4210_camera {
 	int preview_width;
 	int preview_height;
 	int preview_format;
-	float preview_format_bpp;
 	int preview_fps;
 	int picture_width;
 	int picture_height;
@@ -285,6 +286,8 @@ enum m5mo_af_status {
 /*
  * Camera
  */
+
+int smdk4210_camera_buffer_length(int width, int height, int format);
 
 int smdk4210_camera_params_init(struct smdk4210_camera *smdk4210_camera, int id);
 int smdk4210_camera_params_apply(struct smdk4210_camera *smdk4210_camera);

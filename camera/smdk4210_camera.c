@@ -306,6 +306,52 @@ void smdk4210_camera_deinit(struct smdk4210_camera *smdk4210_camera)
 	smdk4210_v4l2_close(smdk4210_camera, 2);
 }
 
+// Utils
+
+int smdk4210_camera_buffer_length(int width, int height, int format)
+{
+	float bpp;
+	int buffer_length;
+
+	switch (format) {
+		case V4L2_PIX_FMT_RGB32:
+			bpp = 4.0f;
+			buffer_length = (int) ((float) width * (float) height * bpp);
+			break;
+		case V4L2_PIX_FMT_RGB565:
+		case V4L2_PIX_FMT_YUYV:
+		case V4L2_PIX_FMT_UYVY:
+		case V4L2_PIX_FMT_VYUY:
+		case V4L2_PIX_FMT_YVYU:
+		case V4L2_PIX_FMT_YUV422P:
+		case V4L2_PIX_FMT_NV16:
+		case V4L2_PIX_FMT_NV61:
+			bpp = 2.0f;
+			buffer_length = (int) ((float) width * (float) height * bpp);
+			break;
+		case V4L2_PIX_FMT_NV12:
+		case V4L2_PIX_FMT_NV12T:
+		case V4L2_PIX_FMT_YUV420:
+		case V4L2_PIX_FMT_YVU420:
+			bpp = 1.5f;
+			buffer_length = SMDK4210_CAMERA_ALIGN(width * height);
+			buffer_length += SMDK4210_CAMERA_ALIGN(width * height / 2);
+			break;
+		case V4L2_PIX_FMT_NV21:
+			bpp = 1.5f;
+			buffer_length = (int) ((float) width * (float) height * bpp);
+			break;
+		case V4L2_PIX_FMT_JPEG:
+		case V4L2_PIX_FMT_INTERLEAVED:
+		default:
+			buffer_length = -1;
+			bpp = 0;
+			break;
+	}
+
+	return buffer_length;
+}
+
 // Params
 
 int smdk4210_camera_params_init(struct smdk4210_camera *smdk4210_camera, int id)
@@ -471,7 +517,6 @@ int smdk4210_camera_params_apply(struct smdk4210_camera *smdk4210_camera)
 	int preview_height = 0;
 	char *preview_format_string;
 	int preview_format;
-	float preview_format_bpp;
 	int preview_fps;
 
 	char *picture_size_string;
@@ -552,26 +597,19 @@ int smdk4210_camera_params_apply(struct smdk4210_camera *smdk4210_camera)
 	if (preview_format_string != NULL) {
 		if (strcmp(preview_format_string, "yuv420sp") == 0) {
 			preview_format = V4L2_PIX_FMT_NV21;
-			preview_format_bpp = 1.5f;
 		} else if (strcmp(preview_format_string, "yuv420p") == 0) {
 			preview_format = V4L2_PIX_FMT_YUV420;
-			preview_format_bpp = 1.5f;
 		} else if (strcmp(preview_format_string, "rgb565") == 0) {
 			preview_format = V4L2_PIX_FMT_RGB565;
-			preview_format_bpp = 2.0f;
 		} else if (strcmp(preview_format_string, "rgb8888") == 0) {
 			preview_format = V4L2_PIX_FMT_RGB32;
-			preview_format_bpp = 4.0f;
 		} else {
 			ALOGE("%s: Unsupported preview format: %s", __func__, preview_format_string);
 			preview_format = V4L2_PIX_FMT_NV21;
-			preview_format_bpp = 1.5f;
 		}
 
-		if (preview_format != smdk4210_camera->preview_format) {
+		if (preview_format != smdk4210_camera->preview_format)
 			smdk4210_camera->preview_format = preview_format;
-			smdk4210_camera->preview_format_bpp = preview_format_bpp;
-		}
 	}
 
 	preview_fps = smdk4210_param_int_get(smdk4210_camera, "preview-frame-rate");
@@ -1096,7 +1134,6 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 			case V4L2_PIX_FMT_RGB565:
 				jpeg_in_format = RGB_565;
 				jpeg_out_format = JPEG_420;
-				jpeg_in_size = (picture_width * picture_height * 2);
 				break;
 			case V4L2_PIX_FMT_NV12:
 			case V4L2_PIX_FMT_NV21:
@@ -1104,7 +1141,6 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 			case V4L2_PIX_FMT_YUV420:
 				jpeg_in_format = YUV_420;
 				jpeg_out_format = JPEG_420;
-				jpeg_in_size = (picture_width * picture_height * 1.5);
 				break;
 			case V4L2_PIX_FMT_YUYV:
 			case V4L2_PIX_FMT_UYVY:
@@ -1112,9 +1148,10 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 			default:
 				jpeg_in_format = YUV_422;
 				jpeg_out_format = JPEG_422;
-				jpeg_in_size = (picture_width * picture_height * 2);
 				break;
 		}
+
+		jpeg_in_size = smdk4210_camera_buffer_length(picture_width, picture_height, camera_picture_format);
 
 		memset(&jpeg_enc_params, 0, sizeof(jpeg_enc_params));
 
@@ -1213,7 +1250,6 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 			case V4L2_PIX_FMT_RGB565:
 				jpeg_in_format = RGB_565;
 				jpeg_out_format = JPEG_420;
-				jpeg_in_size = (picture_width * picture_height * 2);
 				break;
 			case V4L2_PIX_FMT_NV12:
 			case V4L2_PIX_FMT_NV21:
@@ -1221,7 +1257,6 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 			case V4L2_PIX_FMT_YUV420:
 				jpeg_in_format = YUV_420;
 				jpeg_out_format = JPEG_420;
-				jpeg_in_size = (picture_width * picture_height * 1.5);
 				break;
 			case V4L2_PIX_FMT_YUYV:
 			case V4L2_PIX_FMT_UYVY:
@@ -1229,9 +1264,10 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 			default:
 				jpeg_in_format = YUV_422;
 				jpeg_out_format = JPEG_422;
-				jpeg_in_size = (picture_width * picture_height * 2);
 				break;
 		}
+
+		jpeg_in_size = smdk4210_camera_buffer_length(picture_width, picture_height, camera_picture_format);
 
 		memset(&jpeg_enc_params, 0, sizeof(jpeg_enc_params));
 
@@ -1715,7 +1751,6 @@ int smdk4210_camera_preview(struct smdk4210_camera *smdk4210_camera)
 	int stride;
 
 	int width, height;
-	float format_bpp;
 
 	char *preview_format_string;
 	int frame_size, offset;
@@ -1765,7 +1800,6 @@ int smdk4210_camera_preview(struct smdk4210_camera *smdk4210_camera)
 
 	width = smdk4210_camera->preview_width;
 	height = smdk4210_camera->preview_height;
-	format_bpp = smdk4210_camera->preview_format_bpp;
 
 	smdk4210_camera->preview_window->dequeue_buffer(smdk4210_camera->preview_window,
 		&buffer, &stride);
@@ -1896,7 +1930,6 @@ int smdk4210_camera_preview_start(struct smdk4210_camera *smdk4210_camera)
 {
 	struct v4l2_streamparm streamparm;
 	int width, height, format;
-	float format_bpp;
 	int fps, frame_size;
 	int fd;
 
@@ -1925,7 +1958,6 @@ int smdk4210_camera_preview_start(struct smdk4210_camera *smdk4210_camera)
 
 	width = smdk4210_camera->preview_width;
 	height = smdk4210_camera->preview_height;
-	format_bpp = smdk4210_camera->preview_format_bpp;
 
 	rc = smdk4210_v4l2_s_fmt_pix_cap(smdk4210_camera, 0, width, height, format, V4L2_PIX_FMT_MODE_PREVIEW);
 	if (rc < 0) {
@@ -1964,7 +1996,7 @@ int smdk4210_camera_preview_start(struct smdk4210_camera *smdk4210_camera)
 		return -1;
 	}
 
-	frame_size = (int) ((float) width * (float) height * format_bpp);
+	frame_size = smdk4210_camera_buffer_length(width, height, format);
 	for (i = 0; i < smdk4210_camera->preview_buffers_count; i++) {
 		rc = smdk4210_v4l2_querybuf_cap(smdk4210_camera, 0, i);
 		if (rc < 0) {
