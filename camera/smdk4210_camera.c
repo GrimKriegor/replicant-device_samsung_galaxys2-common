@@ -71,7 +71,7 @@ struct smdk4210_camera_preset smdk4210_camera_presets_galaxys2[] = {
 			.picture_size = "3264x2448",
 			.picture_format_values = "jpeg",
 			.picture_format = "jpeg",
-			.jpeg_thumbnail_size_values = "320x240,400x240,0x0",
+			.jpeg_thumbnail_size_values = "320x240,400x240",
 			.jpeg_thumbnail_width = 320,
 			.jpeg_thumbnail_height = 240,
 			.jpeg_thumbnail_quality = 100,
@@ -140,7 +140,7 @@ struct smdk4210_camera_preset smdk4210_camera_presets_galaxys2[] = {
 			.picture_size = "1600x1200",
 			.picture_format_values = "jpeg",
 			.picture_format = "jpeg",
-			.jpeg_thumbnail_size_values = "160x120,0x0",
+			.jpeg_thumbnail_size_values = "160x120",
 			.jpeg_thumbnail_width = 160,
 			.jpeg_thumbnail_height = 120,
 			.jpeg_thumbnail_quality = 100,
@@ -350,6 +350,39 @@ int smdk4210_camera_buffer_length(int width, int height, int format)
 	}
 
 	return buffer_length;
+}
+
+int smdk4210_scale_yuv422(void *src, int src_width, int src_height, void *dst,
+	int dst_width, int dst_height)
+{
+	unsigned char *src_p, *dst_p;
+	int stride_x, stride_y;
+	int step_x, step_y;
+	int start_y;
+	int x, y;
+
+	step_x = src_width / dst_width;
+	step_y = src_height / dst_height;
+
+	stride_x = step_x * 2;
+	stride_y = src_width * 2;
+
+	dst_p = (unsigned char *) dst;
+
+	for (y = 0; y < dst_height; y++) {
+		start_y = stride_y * step_y * y;
+
+		for (x = 0; x < dst_width; x += 2) {
+			src_p = (unsigned char *) src + start_y + stride_x * x;
+
+			*dst_p++ = *src_p++;
+			*dst_p++ = *src_p++;
+			*dst_p++ = *src_p++;
+			*dst_p++ = *src_p++;
+		}
+	}
+
+	return 0;
 }
 
 // Params
@@ -996,10 +1029,13 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 	camera_memory_t *data_memory = NULL;
 	camera_memory_t *exif_data_memory = NULL;
 	camera_memory_t *picture_data_memory = NULL;
+	camera_memory_t *raw_thumbnail_data_memory = NULL;
 	camera_memory_t *jpeg_thumbnail_data_memory = NULL;
 
 	void *jpeg_data = NULL;
 	int jpeg_size = 0;
+	void *raw_thumbnail_data = NULL;
+	int raw_thumbnail_size = 0;
 	void *jpeg_thumbnail_data = NULL;
 	int jpeg_thumbnail_size = 0;
 
@@ -1117,6 +1153,41 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 		jpeg_thumbnail_data = jpeg_thumb_data;
 		jpeg_thumbnail_size = jpeg_thumb_size;
 	} else {
+		raw_thumbnail_size = smdk4210_camera_buffer_length(jpeg_thumbnail_width, jpeg_thumbnail_height, camera_picture_format);
+
+		if (jpeg_thumbnail_width != picture_width || jpeg_thumbnail_height != picture_height) {
+			if (smdk4210_camera->callbacks.request_memory != NULL) {
+				raw_thumbnail_data_memory =
+					smdk4210_camera->callbacks.request_memory(-1,
+						raw_thumbnail_size, 1, 0);
+				if (raw_thumbnail_data_memory == NULL) {
+					ALOGE("%s: raw thumbnail memory request failed!", __func__);
+					goto error;
+				}
+			} else {
+				ALOGE("%s: No memory request function!", __func__);
+				goto error;
+			}
+
+			switch (camera_picture_format) {
+				case V4L2_PIX_FMT_YUYV:
+				case V4L2_PIX_FMT_UYVY:
+				case V4L2_PIX_FMT_YUV422P:
+				default:
+					rc = smdk4210_scale_yuv422(smdk4210_camera->picture_memory->data, picture_width, picture_height, raw_thumbnail_data_memory->data, jpeg_thumbnail_width, jpeg_thumbnail_height);
+					break;
+			}
+
+			if (rc < 0) {
+				ALOGE("%s: Resizing picture failed!", __func__);
+				goto error;
+			}
+
+			raw_thumbnail_data = raw_thumbnail_data_memory->data;
+		} else {
+			raw_thumbnail_data = smdk4210_camera->picture_memory->data;
+		}
+
 		jpeg_fd = api_jpeg_encode_init();
 		if (jpeg_fd < 0) {
 			ALOGE("%s: Failed to init JPEG", __func__);
@@ -1144,7 +1215,7 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 				break;
 		}
 
-		jpeg_in_size = smdk4210_camera_buffer_length(picture_width, picture_height, camera_picture_format);
+		jpeg_in_size = raw_thumbnail_size;
 
 		memset(&jpeg_enc_params, 0, sizeof(jpeg_enc_params));
 
@@ -1178,7 +1249,7 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 			goto error;
 		}
 
-		memcpy(jpeg_in_buffer, smdk4210_camera->picture_memory->data, jpeg_in_size);
+		memcpy(jpeg_in_buffer, raw_thumbnail_data, jpeg_in_size);
 
 		jpeg_result = api_jpeg_encode_exe(jpeg_fd, &jpeg_enc_params);
 		if (jpeg_result != JPEG_ENCODE_OK) {
@@ -1383,6 +1454,9 @@ error:
 complete:
 	if (jpeg_thumbnail_data_memory != NULL && jpeg_thumbnail_data_memory->release != NULL)
 		jpeg_thumbnail_data_memory->release(jpeg_thumbnail_data_memory);
+
+	if (raw_thumbnail_data_memory != NULL && raw_thumbnail_data_memory->release != NULL)
+		raw_thumbnail_data_memory->release(raw_thumbnail_data_memory);
 
 	if (picture_data_memory != NULL && picture_data_memory->release != NULL)
 		picture_data_memory->release(picture_data_memory);
