@@ -21,6 +21,7 @@ LOCAL_SRC_FILES := \
 	smdk4210_camera.c \
 	smdk4210_exif.c \
 	smdk4210_param.c \
+	smdk4210_utils.c \
 	smdk4210_v4l2.c
 
 LOCAL_C_INCLUDES := \

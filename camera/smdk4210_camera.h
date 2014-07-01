@@ -287,11 +287,6 @@ enum m5mo_af_status {
  * Camera
  */
 
-int smdk4210_camera_buffer_length(int width, int height, int format);
-int smdk4210_gralloc_format(int format);
-int smdk4210_scale_yuv422(void *src, int src_width, int src_height, void *dst,
-	int dst_width, int dst_height);
-
 int smdk4210_camera_params_init(struct smdk4210_camera *smdk4210_camera, int id);
 int smdk4210_camera_params_apply(struct smdk4210_camera *smdk4210_camera);
 
@@ -339,6 +334,15 @@ int smdk4210_param_string_set(struct smdk4210_camera *smdk4210_camera,
 
 char *smdk4210_params_string_get(struct smdk4210_camera *smdk4210_camera);
 int smdk4210_params_string_set(struct smdk4210_camera *smdk4210_camera, char *string);
+
+/*
+ * Utils
+ */
+
+int smdk4210_camera_buffer_length(int width, int height, int format);
+int smdk4210_gralloc_format(int format);
+int smdk4210_scale_yuv422(void *src, int src_width, int src_height, void *dst,
+	int dst_width, int dst_height);
 
 /*
  * V4L2
