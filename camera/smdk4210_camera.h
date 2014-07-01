@@ -313,7 +313,7 @@ int smdk4210_exif_attributes_create_params(struct smdk4210_camera *smdk4210_came
 
 int smdk4210_exif_create(struct smdk4210_camera *smdk4210_camera,
 	exif_attribute_t *exif_attributes,
-	camera_memory_t *jpeg_thumbnail_data_memory, int jpeg_thumbnail_size,
+	void *jpeg_thumbnail_data, int jpeg_thumbnail_size,
 	camera_memory_t **exif_data_memory_p, int *exif_size_p);
 
 /*

@@ -998,6 +998,11 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 	camera_memory_t *picture_data_memory = NULL;
 	camera_memory_t *jpeg_thumbnail_data_memory = NULL;
 
+	void *jpeg_data = NULL;
+	int jpeg_size = 0;
+	void *jpeg_thumbnail_data = NULL;
+	int jpeg_thumbnail_size = 0;
+
 	int camera_picture_format;
 	int picture_width;
 	int picture_height;
@@ -1011,10 +1016,10 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 	int data_size;
 
 	int offset = 0;
-	void *picture_addr = NULL;
-	int picture_size = 0;
-	void *jpeg_thumbnail_addr = NULL;
-	int jpeg_thumbnail_size = 0;
+	void *jpeg_main_data = NULL;
+	int jpeg_main_size = 0;
+	void *jpeg_thumb_data = NULL;
+	int jpeg_thumb_size = 0;
 
 	int jpeg_fd;
 	struct jpeg_enc_param jpeg_enc_params;
@@ -1074,7 +1079,7 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 
 	if (camera_picture_format == V4L2_PIX_FMT_JPEG) {
 		rc = smdk4210_v4l2_g_ctrl(smdk4210_camera, 0, V4L2_CID_CAM_JPEG_MAIN_SIZE,
-			&picture_size);
+			&jpeg_main_size);
 		if (rc < 0) {
 			ALOGE("%s: g ctrl failed!", __func__);
 			return -1;
@@ -1087,10 +1092,10 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 			return -1;
 		}
 
-		picture_addr = (void *) ((int) smdk4210_camera->picture_memory->data + offset);
+		jpeg_main_data = (void *) ((int) smdk4210_camera->picture_memory->data + offset);
 
 		rc = smdk4210_v4l2_g_ctrl(smdk4210_camera, 0, V4L2_CID_CAM_JPEG_THUMB_SIZE,
-			&jpeg_thumbnail_size);
+			&jpeg_thumb_size);
 		if (rc < 0) {
 			ALOGE("%s: g ctrl failed!", __func__);
 			return -1;
@@ -1103,26 +1108,14 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 			return -1;
 		}
 
-		jpeg_thumbnail_addr = (void *) ((int) smdk4210_camera->picture_memory->data + offset);
+		jpeg_thumb_data = (void *) ((int) smdk4210_camera->picture_memory->data + offset);
 	}
 
 	// Thumbnail
 
-	if (camera_picture_format == V4L2_PIX_FMT_JPEG && jpeg_thumbnail_addr != NULL && jpeg_thumbnail_size >= 0) {
-		if (smdk4210_camera->callbacks.request_memory != NULL) {
-			jpeg_thumbnail_data_memory =
-				smdk4210_camera->callbacks.request_memory(-1,
-					jpeg_thumbnail_size, 1, 0);
-			if (jpeg_thumbnail_data_memory == NULL) {
-				ALOGE("%s: thumb memory request failed!", __func__);
-				goto error;
-			}
-		} else {
-			ALOGE("%s: No memory request function!", __func__);
-			goto error;
-		}
-
-		memcpy(jpeg_thumbnail_data_memory->data, jpeg_thumbnail_addr, jpeg_thumbnail_size);
+	if (camera_picture_format == V4L2_PIX_FMT_JPEG && jpeg_thumb_data != NULL && jpeg_thumb_size >= 0) {
+		jpeg_thumbnail_data = jpeg_thumb_data;
+		jpeg_thumbnail_size = jpeg_thumb_size;
 	} else {
 		jpeg_fd = api_jpeg_encode_init();
 		if (jpeg_fd < 0) {
@@ -1217,6 +1210,8 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 		}
 
 		memcpy(jpeg_thumbnail_data_memory->data, jpeg_out_buffer, jpeg_out_size);
+
+		jpeg_thumbnail_data = jpeg_thumbnail_data_memory->data;
 		jpeg_thumbnail_size = jpeg_out_size;
 
 		api_jpeg_encode_deinit(jpeg_fd);
@@ -1224,21 +1219,9 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 
 	// Picture
 
-	if (camera_picture_format == V4L2_PIX_FMT_JPEG && picture_addr != NULL && picture_size >= 0) {
-		if (smdk4210_camera->callbacks.request_memory != NULL) {
-			picture_data_memory =
-				smdk4210_camera->callbacks.request_memory(-1,
-					picture_size, 1, 0);
-			if (picture_data_memory == NULL) {
-				ALOGE("%s: picture memory request failed!", __func__);
-				goto error;
-			}
-		} else {
-			ALOGE("%s: No memory request function!", __func__);
-			goto error;
-		}
-
-		memcpy(picture_data_memory->data, picture_addr, picture_size);
+	if (camera_picture_format == V4L2_PIX_FMT_JPEG && jpeg_main_data != NULL && jpeg_main_size >= 0) {
+		jpeg_data = jpeg_main_data;
+		jpeg_size = jpeg_main_size;
 	} else {
 		jpeg_fd = api_jpeg_encode_init();
 		if (jpeg_fd < 0) {
@@ -1333,7 +1316,9 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 		}
 
 		memcpy(picture_data_memory->data, jpeg_out_buffer, jpeg_out_size);
-		picture_size = jpeg_out_size;
+
+		jpeg_data = picture_data_memory->data;
+		jpeg_size = jpeg_out_size;
 
 		api_jpeg_encode_deinit(jpeg_fd);
 	}
@@ -1345,14 +1330,14 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 	smdk4210_exif_attributes_create_params(smdk4210_camera, &exif_attributes);
 
 	rc = smdk4210_exif_create(smdk4210_camera, &exif_attributes,
-		jpeg_thumbnail_data_memory, jpeg_thumbnail_size,
+		jpeg_thumbnail_data, jpeg_thumbnail_size,
 		&exif_data_memory, &exif_size);
 	if (rc < 0 || exif_data_memory == NULL || exif_size <= 0) {
 		ALOGE("%s: EXIF create failed!", __func__);
 		goto error;
 	}
 
-	data_size = exif_size + picture_size;
+	data_size = exif_size + jpeg_size;
 
 	if (smdk4210_camera->callbacks.request_memory != NULL) {
 		data_memory =
@@ -1368,7 +1353,7 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 	}
 
 	// Copy the first two bytes of the JPEG picture
-	memcpy(data_memory->data, picture_data_memory->data, 2);
+	memcpy(data_memory->data, jpeg_data, 2);
 
 	// Copy the EXIF data
 	memcpy((void *) ((int) data_memory->data + 2), exif_data_memory->data,
@@ -1376,7 +1361,7 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 
 	// Copy the JPEG picture
 	memcpy((void *) ((int) data_memory->data + 2 + exif_size),
-		(void *) ((int) picture_data_memory->data + 2), picture_size - 2);
+		(void *) ((int) jpeg_data + 2), jpeg_size - 2);
 
 	// Callbacks
 
@@ -1384,33 +1369,18 @@ int smdk4210_camera_picture(struct smdk4210_camera *smdk4210_camera)
 		smdk4210_camera->callbacks.notify(CAMERA_MSG_SHUTTER, 0, 0,
 			smdk4210_camera->callbacks.user);
 
-	if (SMDK4210_CAMERA_MSG_ENABLED(CAMERA_MSG_RAW_IMAGE) && SMDK4210_CAMERA_CALLBACK_DEFINED(data) &&
-		jpeg_thumbnail_data_memory != NULL)
-		smdk4210_camera->callbacks.data(CAMERA_MSG_RAW_IMAGE,
-			jpeg_thumbnail_data_memory, 0, NULL, smdk4210_camera->callbacks.user);
-
 	if (SMDK4210_CAMERA_MSG_ENABLED(CAMERA_MSG_COMPRESSED_IMAGE) && SMDK4210_CAMERA_CALLBACK_DEFINED(data) &&
 		data_memory != NULL)
 		smdk4210_camera->callbacks.data(CAMERA_MSG_COMPRESSED_IMAGE,
 			data_memory, 0, NULL, smdk4210_camera->callbacks.user);
 
-	// Release memory
-
-	if (jpeg_thumbnail_data_memory != NULL && jpeg_thumbnail_data_memory->release != NULL)
-		jpeg_thumbnail_data_memory->release(jpeg_thumbnail_data_memory);
-
-	if (picture_data_memory != NULL && picture_data_memory->release != NULL)
-		picture_data_memory->release(picture_data_memory);
-
-	if (exif_data_memory != NULL && exif_data_memory->release != NULL)
-		exif_data_memory->release(exif_data_memory);
-
-	if (data_memory != NULL && data_memory->release != NULL)
-		data_memory->release(data_memory);
-
-	return 0;
+	rc = 0;
+	goto complete;
 
 error:
+	rc = -1;
+
+complete:
 	if (jpeg_thumbnail_data_memory != NULL && jpeg_thumbnail_data_memory->release != NULL)
 		jpeg_thumbnail_data_memory->release(jpeg_thumbnail_data_memory);
 
@@ -1423,7 +1393,7 @@ error:
 	if (data_memory != NULL && data_memory->release != NULL)
 		data_memory->release(data_memory);
 
-	return -1;
+	return rc;
 }
 
 void *smdk4210_camera_picture_thread(void *data)

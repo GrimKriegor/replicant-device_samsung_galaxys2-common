@@ -396,7 +396,7 @@ int smdk4210_exif_write_data(void *exif_data, unsigned short tag,
 
 int smdk4210_exif_create(struct smdk4210_camera *smdk4210_camera,
 	exif_attribute_t *exif_attributes,
-	camera_memory_t *jpeg_thumbnail_data_memory, int jpeg_thumbnail_size,
+	void *jpeg_thumbnail_data, int jpeg_thumbnail_size,
 	camera_memory_t **exif_data_memory_p, int *exif_size_p)
 {
 	// Markers
@@ -426,7 +426,7 @@ int smdk4210_exif_create(struct smdk4210_camera *smdk4210_camera,
 	unsigned int value;
 
 	if (smdk4210_camera == NULL || exif_attributes == NULL ||
-		jpeg_thumbnail_data_memory == NULL || jpeg_thumbnail_size <= 0 ||
+		jpeg_thumbnail_data == NULL || jpeg_thumbnail_size <= 0 ||
 		exif_data_memory_p == NULL || exif_size_p == NULL)
 		return -EINVAL;
 
@@ -699,9 +699,9 @@ int smdk4210_exif_create(struct smdk4210_camera *smdk4210_camera,
 		pointer += OFFSET_SIZE;
 	}
 
-	if (exif_attributes->enableThumb && jpeg_thumbnail_data_memory != NULL && jpeg_thumbnail_size > 0) {
+	if (exif_attributes->enableThumb && jpeg_thumbnail_data != NULL && jpeg_thumbnail_size > 0) {
 		exif_thumb_size = (unsigned int) jpeg_thumbnail_size;
-		exif_thumb_data = (void *) jpeg_thumbnail_data_memory->data;
+		exif_thumb_data = (void *) jpeg_thumbnail_data;
 
 		value = offset;
 		memcpy(exif_ifd_thumb, &value, OFFSET_SIZE);
