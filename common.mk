@@ -84,6 +84,23 @@ PRODUCT_PACKAGES += \
     charger \
     charger_res_images
 
+# MFC API
+PRODUCT_PACKAGES += \
+    libsecmfcdecapi \
+    libsecmfcencapi
+
+# OMX
+PRODUCT_PACKAGES += \
+    libstagefrighthw \
+    libSEC_OMX_Resourcemanager \
+    libSEC_OMX_Core \
+    libOMX.SEC.AVC.Decoder \
+    libOMX.SEC.M4V.Decoder \
+    libOMX.SEC.WMV.Decoder \
+    libOMX.SEC.AVC.Encoder \
+    libOMX.SEC.M4V.Encoder
+#   libOMX.SEC.VP8.Decoder
+
 PRODUCT_COPY_FILES += \
     $(COMMON_PATH)/configs/media_codecs.xml:system/etc/media_codecs.xml \
     $(COMMON_PATH)/configs/media_profiles.xml:system/etc/media_profiles.xml
