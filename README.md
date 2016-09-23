@@ -49,7 +49,6 @@ Extracted from CyanogenMod 10.1.3 (cm-10.1.3-i9100.zip)
         ├── hw
         │   └── gralloc.exynos4.so
         ├── libMali.so
-        ├── libsecril-client.so
         └── libUMP.so
     vendor
     └── firmware
