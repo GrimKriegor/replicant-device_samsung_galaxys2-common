@@ -19,19 +19,16 @@ Public Key: 5E1C EF76 A78A A66B 0701 37C7 426E C780 9555 34E6
 **Repartitioning the internal memory can brick your phone, be careful!**
 
 
-I've prepared a partition table that expands /data (mmcblk0p10) as much as possible and shrinks /sdcard (mmcblk0p11) by changing the position of their last and first blocks respectively, resulting in a 14GiB /data partition.
+I've prepared a partition table that expands /data (mmcblk0p10) as much as possible, shrinks /sdcard (mmcblk0p11) and /preload (mmcblk0p12) by changing the position of their border blocks, resulting in a 14GiB /data partition.
 
 PIT file and signature are avaliable here:
 
 <https://grimkriegor.zalkeen.pw/replicant/pit-files/>
 
-During the repartition process, you are also required to provide the binary contents of some partitions, including bootloader, kernel, modem firmware, preload/hidden, etc. All the files you need can be found in a stock rom package.
+Unless you change the coordinates of a partition its contents should be safe, simply flash the partition table using Heimdall:
 
-After extracting the stock rom and booting the device in download mode, tell Heimdall to flash the PIT file and all the files contained in the rom, in my case it looked something like this:
+    heimdall flash --repartition --PIT I9100_14GB_grim.pit
 
-    heimdall flash --repartition --BOOT boot.bin --SBL1 Sbl.bin --KERNEL zImage --MODEM modem.bin --CACHE cache.img --FACTORYFS factoryfs.img --HIDDEN hidden.img --PARAM param.lfs --PIT I9100_14GB_grim.pit
-
-*There may be an elegant way to download the partition contents from the phone and avoid having to download a stock rom, if you are familiar with such a thing let me know please.*
 
 ##Required non-free files, firmware and drivers
 Extracted from CyanogenMod 10.1.3 (cm-10.1.3-i9100.zip)
