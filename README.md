@@ -24,9 +24,9 @@ Public Key: 5E1C EF76 A78A A66B 0701 37C7 426E C780 9555 34E6
 
 I've prepared a partition table that expands /data (mmcblk0p10) as much as possible, shrinks /sdcard (mmcblk0p11) and /preload (mmcblk0p12) by changing the position of their border blocks, resulting in a 14GiB /data partition.
 
-PIT file and signature are avaliable here:
+PIT files and signatures are avaliable here:
 
-<https://grimkriegor.zalkeen.pw/replicant/pit-files/>
+<https://github.com/GrimKriegor/Misc/tree/master/Replicant/PartitionTables>
 
 Unless you change the coordinates of a partition its contents should be safe, simply flash the partition table using Heimdall:
 
