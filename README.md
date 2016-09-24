@@ -11,13 +11,12 @@ While it pains me to taint such a great project with non-free dependencies, it w
 ##Recent builds and signatures
 Public Key: 5E1C EF76 A78A A66B 0701 37C7 426E C780 9555 34E6
 
-<https://grimkriegor.zalkeen.pw/replicant/>
+<https://github.com/GrimKriegor/replicant-device_samsung_galaxys2-common/releases/>
 
 ##Repartitioning, expanding /data and shrinking /emmc
 (!!) **User discretion is advised** (!!)
 
 **Repartitioning the internal memory can brick your phone, be careful!**
-
 
 I've prepared a partition table that expands /data (mmcblk0p10) as much as possible, shrinks /sdcard (mmcblk0p11) and /preload (mmcblk0p12) by changing the position of their border blocks, resulting in a 14GiB /data partition.
 
@@ -28,7 +27,6 @@ PIT file and signature are avaliable here:
 Unless you change the coordinates of a partition its contents should be safe, simply flash the partition table using Heimdall:
 
     heimdall flash --repartition --PIT I9100_14GB_grim.pit
-
 
 ##Required non-free files, firmware and drivers
 Extracted from CyanogenMod 10.1.3 (cm-10.1.3-i9100.zip)
