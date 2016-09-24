@@ -7,6 +7,10 @@ While it pains me to taint such a great project with non-free dependencies, it w
 - Re-enabled video recording, hardware video encoding and decoding. 
 [Based on Wolfgang's proposal for the S3.](https://www.mail-archive.com/replicant@lists.osuosl.org/msg00444.html) (Requires non-free MFC firmware)
 - Changed camera preview from rgb565 to yuv420sp to allow for QR code scanning. (Requires EGL, Gralloc and Mali non-free drivers)
+- Support for isolated persistent recovery. [Based on Lanchon's proposal.](http://forum.xda-developers.com/galaxy-s2/orig-development/isorec-isolated-recovery-galaxy-s2-t3291176)
+
+##Associated repositories
+- [Samsung smdk4412 kernel](https://github.com/GrimKriegor/replicant-kernel_samsung_smdk4412)
 
 ##Recent builds and signatures
 Public Key: 5E1C EF76 A78A A66B 0701 37C7 426E C780 9555 34E6
