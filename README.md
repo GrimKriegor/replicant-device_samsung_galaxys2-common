@@ -30,7 +30,15 @@ PIT files and signatures are avaliable here:
 
 Unless you change the coordinates of a partition its contents should be safe, simply flash the partition table using Heimdall:
 
-    heimdall flash --repartition --PIT I9100_14GB_grim.pit
+    heimdall flash --repartition --PIT I9100_15GBdataPIT_grim.pit
+
+Alternatively you can include the kernel+cwm-recovery image in order to install Replicant via the .zip file:
+
+    heimdall flash --repartition --PIT I9100_15GiBdataPIT_grim.pit --KERNEL recovery.img
+
+Or even flash Replicant, its kernel+cwm-recovery and an optional separate recovery of your choosing in one go using the image files:
+
+    heimdall flash --repartition --PIT I9100_15GiBdataPIT_grim.pit --KERNEL boot.img --FACTORYFS system.img [--RECOVERY twrp-*-i9100.img]
 
 ##Required non-free files, firmware and drivers
 Extracted from CyanogenMod 10.1.3 (cm-10.1.3-i9100.zip)
