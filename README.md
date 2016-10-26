@@ -8,6 +8,7 @@ While it pains me to taint such a great project with non-free dependencies, it w
 [Based on Wolfgang's proposal for the S3.](https://www.mail-archive.com/replicant@lists.osuosl.org/msg00444.html) (Requires non-free MFC firmware)
 - Changed camera preview from rgb565 to yuv420sp to allow for QR code scanning. (Requires EGL, Gralloc and Mali non-free drivers)
 - Support for isolated persistent recovery. [Based on Lanchon's proposal.](http://forum.xda-developers.com/galaxy-s2/orig-development/isorec-isolated-recovery-galaxy-s2-t3291176)
+- Dirty COW vulnerability fix. [From Torvalds' upstream changes](https://lkml.org/lkml/2016/10/19/860)
 
 ##Associated repositories
 - [Samsung smdk4412 kernel](https://github.com/GrimKriegor/replicant-kernel_samsung_smdk4412)
@@ -30,15 +31,15 @@ PIT files and signatures are avaliable here:
 
 Unless you change the coordinates of a partition its contents should be safe, simply flash the partition table using Heimdall:
 
-    heimdall flash --repartition --PIT I9100_15GBdataPIT_grim.pit
+    heimdall flash --repartition --PIT I9100_14GBdataPIT_grim.pit
 
 Alternatively you can include the kernel+cwm-recovery image in order to install Replicant via the .zip file:
 
-    heimdall flash --repartition --PIT I9100_15GiBdataPIT_grim.pit --KERNEL recovery.img
+    heimdall flash --repartition --PIT I9100_14GiBdataPIT_grim.pit --KERNEL recovery.img
 
 Or even flash Replicant, its kernel+cwm-recovery and an optional separate recovery of your choosing in one go using the image files:
 
-    heimdall flash --repartition --PIT I9100_15GiBdataPIT_grim.pit --KERNEL boot.img --FACTORYFS system.img [--RECOVERY twrp-*-i9100.img]
+    heimdall flash --repartition --PIT I9100_14GiBdataPIT_grim.pit --KERNEL boot.img --FACTORYFS system.img [--RECOVERY twrp-*-i9100.img]
 
 ##Required non-free files, firmware and drivers
 Extracted from CyanogenMod 10.1.3 (cm-10.1.3-i9100.zip)
