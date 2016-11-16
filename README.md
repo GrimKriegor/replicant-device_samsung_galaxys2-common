@@ -9,11 +9,12 @@ While it pains me to taint such a great project with non-free dependencies, it w
 - Changed camera preview from rgb565 to yuv420sp to allow for QR code scanning. (Requires EGL, Gralloc and Mali non-free drivers)
 - Support for isolated persistent recovery. [Based on Lanchon's proposal.](http://forum.xda-developers.com/galaxy-s2/orig-development/isorec-isolated-recovery-galaxy-s2-t3291176)
 - Dirty COW vulnerability fix. [From Torvalds' upstream changes](https://lkml.org/lkml/2016/10/19/860)
-- Support for the TLS 1.2 protocol
+- Support for the TLS 1.2 protocol, removal of SSL 3 and weak ciphers
 
 ##Associated repositories
-- [Samsung smdk4412 kernel](https://github.com/GrimKriegor/replicant-kernel_samsung_smdk4412)
+- [SMDK4412 kernel](https://github.com/GrimKriegor/replicant-kernel_samsung_smdk4412)
 - [Libcore](https://github.com/GrimKriegor/replicant-libcore)
+- [Chromium](https://code.fossencdi.org/external_chromium.git/)
 
 ##Recent builds and signatures
 Public Key: 5E1C EF76 A78A A66B 0701 37C7 426E C780 9555 34E6
